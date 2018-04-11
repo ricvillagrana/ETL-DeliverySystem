@@ -18,7 +18,7 @@ class OrdenesController extends Controller
         $data['tableName'] = "Órdenes";
         $data['columns'] = [
             'Número de orden',
-            'Número de cliente', 
+            'Nombre del cliente', 
             'Prioridad (1-5)',
             'Cancelada',
             'Subtotal',
@@ -29,7 +29,7 @@ class OrdenesController extends Controller
         ];
         $data['params'] = [
             'id_orden',
-            'id_cliente',
+            'nombre_cliente',
             'prioridad',
             'cancelada',
             'subtotal',

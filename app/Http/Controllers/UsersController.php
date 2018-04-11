@@ -65,13 +65,6 @@ class UsersController extends Controller
      * 
      * @return view ETL
      */
-    public function etl (Request $request) 
-    {
-        if(session('user') === null)
-            return redirect('/')->with('error', 'Debes iniciar sesión.');
-        $data['user'] = session('user');
-        return view('panel.etl', $data);
-    }
     /**
      * Display a listing of the resource.
      *

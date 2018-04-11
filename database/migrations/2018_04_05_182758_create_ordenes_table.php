@@ -15,13 +15,14 @@ class CreateOrdenesTable extends Migration
     {
         Schema::create('ordenes', function (Blueprint $table) {
             $table->integer('id');
-            $table->integer('id_cliente');
-            $table->integer('id_trabajador');
+            $table->string('nombre_cliente');
             $table->datetime('fecha');
             $table->float('subtotal', 12, 3);
             $table->float('iva', 12, 3);
             $table->float('total', 12, 3);
+            $table->string('tipo_pago');
             $table->timestamps();
+            $table->integer('etl');
         });
     }
 

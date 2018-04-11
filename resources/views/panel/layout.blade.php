@@ -126,7 +126,9 @@ Dashboard
             <li class="nav-item">
                 <a class="nav-link" href="/etl"><i class="fa fa-download"></i> ETL</a>
             </li>
-            
+            <li class="nav-item">
+                <a class="nav-link" href="/etl/errors"><i class="fa fa-download"></i> Errors</a>
+            </li>
         </ul>
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">

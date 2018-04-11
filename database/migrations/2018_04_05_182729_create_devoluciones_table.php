@@ -17,9 +17,11 @@ class CreateDevolucionesTable extends Migration
             $table->integer('id');
             $table->integer('id_orden');
             $table->integer('id_prenda');
+            $table->string('nombre_cliente');
             $table->text('razon');
             $table->integer('cantidad');
             $table->timestamps();
+            $table->integer('etl');
         });
     }
 

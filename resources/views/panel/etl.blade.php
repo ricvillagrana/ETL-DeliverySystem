@@ -22,5 +22,6 @@
                 <a href="/etl/begin" ><button type="button" class="btn btn-lg btn-block btn-outline-primary">Comenzar el proceso</button></a>
             </div>
         </div>
+        <a href="/etl/clean">Reiniciar ETL</a>
     </div>
     @endsection

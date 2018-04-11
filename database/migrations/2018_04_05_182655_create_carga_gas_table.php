@@ -15,11 +15,14 @@ class CreateCargaGasTable extends Migration
     {
         Schema::create('carga_gas', function (Blueprint $table) {
             $table->integer('id');
+            $table->string('nombre_trabajador');
+            $table->string('nombre_estacion');
             $table->float('cantidad', 12, 3);
             $table->float('precio_litro', 12, 3);
             $table->float('total', 12, 3);
             $table->datetime('fecha');
             $table->timestamps();
+            $table->integer('etl');
         });
     }
 
