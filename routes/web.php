@@ -23,13 +23,13 @@ Route::post('/auth', 'UsersController@auth');
 Route::post('/create', 'UsersController@create');
 Route::get('/logout', 'UsersController@logout');
 // APIs
-Route::get('/dwh/envios', 'EnviosController@index');
-Route::get('/dwh/vehiculo-dia', 'VehiculoDiaController@index');
-Route::get('/dwh/envio-vehiculo-dia', 'EnvioVehiculoDiaController@index');
-Route::get('/dwh/carga-gas', 'CargaGasController@index');
-Route::get('/dwh/devoluciones', 'DevolucionesController@index');
-Route::get('/dwh/ordenes', 'OrdenesController@index');
-Route::get('/dwh/conductores', 'ConductoresController@index');
+Route::get('/fuentes-datos/envios', 'EnviosController@index');
+Route::get('/fuentes-datos/vehiculo-dia', 'VehiculoDiaController@index');
+Route::get('/fuentes-datos/envio-vehiculo-dia', 'EnvioVehiculoDiaController@index');
+Route::get('/fuentes-datos/carga-gas', 'CargaGasController@index');
+Route::get('/fuentes-datos/devoluciones', 'DevolucionesController@index');
+Route::get('/fuentes-datos/ordenes', 'OrdenesController@index');
+Route::get('/fuentes-datos/conductores', 'ConductoresController@index');
 
 
 

@@ -3,7 +3,6 @@
 Dashboard
 @endsection
 @section('css')
-@section('css')
 <style type="text/css">/* Chart.js */
     a:hover {text-decoration: none;}
     body {
@@ -103,6 +102,7 @@ Dashboard
     .margining { margin: 5px;}
 </style>
 <link rel="stylesheet" href="/css/app.css">
+@yield('aditional-css')
 @endsection
 @section('content')
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
@@ -127,12 +127,12 @@ Dashboard
                 <a class="nav-link" href="/etl"><i class="fa fa-download"></i> ETL</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/etl/errors"><i class="fa fa-download"></i> Errors</a>
+                <a class="nav-link" href="/etl/errors"><i class="fa fa-exclamation-triangle"></i> Errors</a>
             </li>
         </ul>
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                <span><i class="fa fa-user-o"></i> Fuentes de datos (APIs)</span>
+                <span><i class="fa fa-user-o"></i> Data Ware House</span>
             </h6>
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -158,6 +158,34 @@ Dashboard
                 </li>
             </ul>
         </h6>
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                <span><i class="fa fa-user-o"></i> Fuentes de datos (APIs)</span>
+            </h6>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="/fuentes-datos/envios"><i class="fa fa-truck"></i> Envíos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/fuentes-datos/vehiculo-dia"><i class="fa fa-cube"></i> Vehiculos día</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/fuentes-datos/envio-vehiculo-dia"><i class="fa fa-cubes"></i> Envíos vehiculo día</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/fuentes-datos/carga-gas"><i class="fa fa-filter"></i> Carga gas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/fuentes-datos/devoluciones"><i class="fa fa-undo"></i> Devoluciones</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/fuentes-datos/ordenes"><i class="fa fa-list-ul"></i> Órdenes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/fuentes-datos/conductores"><i class="fa fa-users"></i> Conductores</a>
+                </li>
+            </ul>
+        </h6>
     </div>
 </nav>
 <div class="offset-md-2 col-md-10 col-12">
@@ -167,4 +195,6 @@ Dashboard
 @endsection
 @section('js')
 <script src="/js/app.js"></script>
+<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+@yield('additional-js')
 @endsection
