@@ -102,7 +102,7 @@ Dashboard
     .margining { margin: 5px;}
 </style>
 <link rel="stylesheet" href="/css/app.css">
-@yield('aditional-css')
+@yield('additional-css')
 @endsection
 @section('content')
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
@@ -127,7 +127,7 @@ Dashboard
                 <a class="nav-link" href="/etl"><i class="fa fa-download"></i> ETL</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/etl/errors"><i class="fa fa-exclamation-triangle"></i> Errors</a>
+                <a class="nav-link" href="/etl/errors"><i class="fa fa-exclamation-triangle"></i> Errores</a>
             </li>
         </ul>
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
@@ -196,5 +196,9 @@ Dashboard
 @section('js')
 <script src="/js/app.js"></script>
 <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+<script src="https://unpkg.com/sweetalert2@7.18.0/dist/sweetalert2.all.js"></script>
 @yield('additional-js')
+@endsection
+@section('extra-content')
+@yield('extra')
 @endsection

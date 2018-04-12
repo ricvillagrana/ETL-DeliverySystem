@@ -17,7 +17,7 @@ class CreateEnviosTable extends Migration
             $table->integer('id');
             $table->integer('id_orden');
             $table->string('nombre_cliente');
-            $table->string('firmado_por');
+            $table->string('firmado_por')->nullable();
             $table->date('fecha');
             $table->string('folio_factura');
             $table->string('estatus');

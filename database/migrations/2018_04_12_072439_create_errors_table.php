@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateEnvioVehiculoDiasTable extends Migration
+class CreateErrorsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,15 @@ class CreateEnvioVehiculoDiasTable extends Migration
      */
     public function up()
     {
-        Schema::create('envio_vehiculo_dias', function (Blueprint $table) {
+        Schema::create('errors', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('id_envio');
-            $table->integer('id_vehiculo_dia');
-            $table->timestamps();
+            $table->string('table');
+            $table->integer('id_error');
+            $table->string('field');
+            $table->text('comment');
+            $table->boolean('solved')->default(false);
             $table->integer('etl');
+            $table->timestamps();
         });
     }
 
@@ -29,6 +32,6 @@ class CreateEnvioVehiculoDiasTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('envio_vehiculo_dias');
+        Schema::dropIfExists('errors');
     }
 }

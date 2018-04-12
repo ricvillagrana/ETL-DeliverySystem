@@ -22,7 +22,7 @@ class CreateVehiculoDiasTable extends Migration
             $table->float('km_inicial', 12, 3);
             $table->float('km_final', 12, 3);
             $table->time('hora_inicio');
-            $table->time('hora_fin');
+            $table->time('hora_fin')->nullable();
             $table->float('gas_consumida', 12, 3);
             $table->float('km_recorridos', 12, 3);
             $table->timestamps();

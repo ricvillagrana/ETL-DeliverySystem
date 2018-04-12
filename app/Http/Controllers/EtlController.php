@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Error;
 use Illuminate\Http\Request;
 
 class EtlController extends Controller
@@ -17,6 +18,8 @@ class EtlController extends Controller
         if(session('user') === null)
             return redirect('/')->with('error', 'Debes iniciar sesión.');
         $data['user'] = session('user');
+        $data['errors'] = Error::all();
+        $data['error_quantity'] = Error::all()->count();
         return view('panel.errors', $data);
     }
 }
