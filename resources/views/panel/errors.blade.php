@@ -5,7 +5,16 @@
 </style>
 @endsection
 @section('dashboard-content')
-<h3> Errores: {{ $error_quantity }} </h3>
+<div class="card mb-4 box-shadow mx-auto w-50">
+    <div class="card-header">
+        <h4 class="my-0 font-weight-normal"> {{ $error_quantity }} errores encontrados </h4>
+    </div>
+    <div class="card-body">
+        Haz click para ir a la corrección.
+        <button id="corrections-btn" type="button" class="mt-2 btn btn-lg btn-block btn-outline-success" {{ $error_quantity == 0 ? 'disabled' : '' }}>Comenzar el proceso de corrección</button>
+    </div>
+</div>
+<h3> Lista de errores </h3>
 <table id="table-head-freeze" class="table table-hover table-light">
     <thead class="thead-light">
         <th scope="col"> Tabla en la que está </th>
