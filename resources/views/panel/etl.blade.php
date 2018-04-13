@@ -67,22 +67,24 @@
     </div>
     <div id="fg-wall" class="text-center"></div>
     <div id="content-etl-process">
-        <div class="card text-center mx-auto mt-5" style="width: 40rem; opacity: 1;">
-            <div class="card-body">
-                <h2 class="card-title">Proceso ETL</h2>
-                <p class="card-text"> 
-                    <div id="progress-wheel" style="display:block;"><p class="loader mx-auto"></p></div>
-                    <div id="progress-done" style="display:none;">
-                        <img width="100px" height="100px" src="{{URL::asset('img/checked.png')}}">
+        <div class="row">
+            <div class="card text-center mx-auto mt-5 col-md-6 col-sm-5" style="opacity: 1;">
+                <div class="card-body">
+                    <h2 class="card-title">Proceso ETL</h2>
+                    <p class="card-text"> 
+                        <div id="progress-wheel" style="display:block;"><p class="loader mx-auto"></p></div>
+                        <div id="progress-done" style="display:none;">
+                            <img width="100px" height="100px" src="{{URL::asset('img/checked.png')}}">
+                        </div>
+                        <p> @{{ percentage }} </p>
+                        @{{ message }} 
+                    </p>
+                    <div class="progress mb-4">
+                        <div id="etl-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
                     </div>
-                    <p> @{{ percentage }} </p>
-                    @{{ message }} 
-                </p>
-                <div class="progress mb-4">
-                    <div id="etl-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                    <a href="#" id="next-etl-btn" style="display:none;" class="btn btn-success w-50 mx-auto">Corregir errores</a>
+                    <button id="close-etl-btn" @click="etl_finish()" style="display:none;" class="mt-3 btn btn-outline-secondary w-25 mx-auto"> Cerrar</button>
                 </div>
-                <a href="#" id="next-etl-btn" style="display:none;" class="btn btn-success w-50 mx-auto">Corregir errores</a>
-                <button id="close-etl-btn" @click="etl_finish()" style="display:none;" class="mt-3 btn btn-outline-secondary w-25 mx-auto"> Cerrar</button>
             </div>
         </div>
     </div>
@@ -96,7 +98,6 @@
         data: {
             message: 'Comenzando el proceso...',
             percentage: '0%',
-            errors: 0,
         },
         
         methods: {
@@ -130,47 +131,92 @@
                 $('#content-etl-process').css('opacity', "1");
                 etl.message = 'Preparando Fuentes de Datos para ETL...'
                 setTimeout(function(){
-                    etl.message = 'Proceso de ETL en marcha...'
-                    etl.percentage = '22%'
-                    $('#etl-progress-bar').css('width', etl.percentage)
+                    etl.message = 'Preparando todo...'
+                    $.ajaxSetup({async: false});
                     setTimeout(function(){
-                        $.ajaxSetup({async: false});
                         $.ajax({url: '{{ URL::to('/etl/begin') }}', success: function(result){
-                            etl.percentage = '40%'
+                            etl.percentage = '5%'
                             $('#etl-progress-bar').css('width', etl.percentage)
-                            etl.message = 'Proceso de ETL terminado con éxito. Resultado: ' + result + ' errores.'
-                            etl.errors = result
+                            etl.message = 'Creación de ETL completada.'
                         }});
-                        etl.percentage = '50%'
-                        $('#etl-progress-bar').css('width', etl.percentage)
+                        
                         setTimeout(function(){
-                            etl.message = 'Recabando errores...'
-                            etl.percentage = '68%'
-                            $('#etl-progress-bar').css('width', etl.percentage)
-                            setTimeout(function(){
-                                etl.message = 'Almacenando errores...'
-                                etl.percentage = '86%'
+                            etl.message = 'Migrando tabla de Envios...'
+                            $.ajax({url: '{{ URL::to('/etl/do/envios') }}', success: function(result){
+                                etl.percentage = '15%'
                                 $('#etl-progress-bar').css('width', etl.percentage)
-                                setTimeout(function(){
-                                    etl.message = 'Proceso finalizado. ' + etl.errors + ' errores encontrados.'
-                                    // show buttons
-                                    $('#next-etl-btn').css({display: "block"});
-                                    $('#close-etl-btn').css({display: "block"});
-                                    // Show done image
-                                    $('#progress-wheel').css({display: "none"});
-                                    $('#progress-done').css({display: "block"});
-                                    // Set progressbar to 100%
-                                    etl.percentage = '100%'
+                                etl.message = 'Migración de Envios completada con éxito.'
+                            }});
+                            
+                            setTimeout(function(){
+                                etl.message = 'Migrando tabla de Vehículo Día...'
+                                $.ajax({url: '{{ URL::to('/etl/do/vehiculo_dias') }}', success: function(result){
+                                    etl.percentage = '29%'
                                     $('#etl-progress-bar').css('width', etl.percentage)
-                                    // Set progressbar Green
-                                    $('#etl-progress-bar').addClass('bg-success')
-                                    // Disable etl-begin button
-                                    $("#etl-begin").prop('disabled', true) ;
-                                },2000);
-                            },1000);
-                        },2500);
-                    },500);
-                }, 1000)
+                                    etl.message = 'Migración de Vehículo Día completada con éxito.'
+                                }});
+                                
+                                setTimeout(function(){
+                                    etl.message = 'Migrando tabla de Envío Vehículo Día...'
+                                    $.ajax({url: '{{ URL::to('/etl/do/envio_vehiculo_dias') }}', success: function(result){
+                                        etl.percentage = '44%'
+                                        $('#etl-progress-bar').css('width', etl.percentage)
+                                        etl.message = 'Migración de Envío Vehículo Día completada con éxito.'
+                                    }});
+                                    
+                                    setTimeout(function(){
+                                        etl.message = 'Migrando tabla de Carga Gas...'
+                                        $.ajax({url: '{{ URL::to('/etl/do/carga_gas') }}', success: function(result){
+                                            etl.percentage = '59%'
+                                            $('#etl-progress-bar').css('width', etl.percentage)
+                                            etl.message = 'Migración de Carga Gas completada con éxito.'
+                                        }});
+                                        
+                                        setTimeout(function(){
+                                            etl.message = 'Migrando tabla de Devoluciones...'
+                                            $.ajax({url: '{{ URL::to('/etl/do/devoluciones') }}', success: function(result){
+                                                etl.percentage = '74%'
+                                                $('#etl-progress-bar').css('width', etl.percentage)
+                                                etl.message = 'Migración de Devoluciones completada con éxito.'
+                                            }});
+                                            
+                                            setTimeout(function(){
+                                                etl.message = 'Migrando tabla de Órdenes...'
+                                                $.ajax({url: '{{ URL::to('/etl/do/ordenes') }}', success: function(result){
+                                                    etl.percentage = '88%'
+                                                    $('#etl-progress-bar').css('width', etl.percentage)
+                                                    etl.message = 'Migración de Órdenes completada con éxito.'
+                                                }});
+                                                setTimeout(function(){
+                                                    etl.message = 'Migrando tabla de conductores...'
+                                                    $.ajax({url: '{{ URL::to('/etl/do/ordenes') }}', success: function(result){
+                                                        etl.percentage = '99%'
+                                                        $('#etl-progress-bar').css('width', etl.percentage)
+                                                        etl.message = 'Migración de conductores completada con éxito.'
+                                                    }});
+                                                    // Set progressbar to 100%
+                                                    etl.percentage = '100%'
+                                                    etl.message = 'Proceso finalizado. '
+                                                    // show buttons
+                                                    $('#next-etl-btn').css({display: "block"});
+                                                    $('#close-etl-btn').css({display: "block"});
+                                                    // Show done image
+                                                    $('#progress-wheel').css({display: "none"});
+                                                    $('#progress-done').css({display: "block"});
+                                                    $('#etl-progress-bar').css('width', etl.percentage)
+                                                    // Set progressbar Green
+                                                    $('#etl-progress-bar').addClass('bg-success')
+                                                    // Disable etl-begin button
+                                                    $("#etl-begin").prop('disabled', true) ;
+                                                },100)
+                                            },100)
+                                        },100)
+                                    },100)
+                                },100)
+                            },100)
+                        },100)
+                    },100)
+                },100)
             },
             etl_finish: function(){
                 $('#fg-wall').css('top', "100%");

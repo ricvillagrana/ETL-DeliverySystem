@@ -14,6 +14,17 @@ class EtlController extends Controller
         $data['user'] = session('user');
         return view('panel.etl', $data);
     }
+    public function begin () 
+    {
+        if(session('user') != null):
+            $etl = new \App\Etl;
+            $etl->id_user = session('user')->id;
+            $etl->save();
+            session(['id_etl' => $etl->id]);
+        else:
+            return redirect('/')->with('error', 'Debes iniciar sesión.');
+        endif;
+    }
     public function errors () {
         if(session('user') === null)
             return redirect('/')->with('error', 'Debes iniciar sesión.');
