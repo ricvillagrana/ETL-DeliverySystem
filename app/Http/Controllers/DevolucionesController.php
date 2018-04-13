@@ -18,6 +18,7 @@ class DevolucionesController extends Controller
         $data['tableName'] = "Devoluciones";
         $data['columns'] = [
             'Número de devolución',
+            'Nombre del cliente',
             'Número de producto', 
             'Número de orden',
             'Razón',
@@ -25,6 +26,7 @@ class DevolucionesController extends Controller
         ];
         $data['params'] = [
             'id_devolucion',
+            'nombre_cliente',
             'id_producto',
             'id_orden',
             'razon',

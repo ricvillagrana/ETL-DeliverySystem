@@ -18,7 +18,7 @@ class VehiculoDiaController extends Controller
         $data['tableName'] = "Vehículo Día";
         $data['columns'] = [
             'Número de vehículo', 
-            'Número de trabajador',
+            'Nombre del trabajador',
             'Fecha del día',
             'Gas al inicio del día',
             'Gas al final del día',
@@ -31,7 +31,7 @@ class VehiculoDiaController extends Controller
         ];
         $data['params'] = [
             'id_vehiculo_dia',
-            'id_conductor',
+            'nombre_trabajador',
             'fecha_dia',
             'gas_inicial',
             'gas_final',

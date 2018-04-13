@@ -21,6 +21,8 @@
         "code-prettify": "^0.1.0"
     },
     "dependencies": {
+        "bower": "^1.8.4",
+        "chart.js": "^2.7.2",
         "code-prettify": "^0.1.0",
         "font-awesome": "^4.7.0"
     }

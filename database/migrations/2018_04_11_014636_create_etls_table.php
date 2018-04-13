@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreatePrendasTable extends Migration
+class CreateEtlsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class CreatePrendasTable extends Migration
      */
     public function up()
     {
-        Schema::create('prendas', function (Blueprint $table) {
-            $table->integer('id');
-            $table->float('precio_unit', 12, 3);    
-            $table->text('descripcion');
+        Schema::create('etls', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('id_user');
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ class CreatePrendasTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('prendas');
+        Schema::dropIfExists('etls');
     }
 }

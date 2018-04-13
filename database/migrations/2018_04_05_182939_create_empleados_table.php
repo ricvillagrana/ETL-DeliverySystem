@@ -24,8 +24,10 @@ class CreateEmpleadosTable extends Migration
             $table->string('domicilio');
             $table->string('municipio');
             $table->string('estado');
-            $table->datetime('fecha_inicio');
+            $table->date('fecha_inicio');
+            $table->date('fecha_nac');
             $table->timestamps();
+            $table->integer('etl');
         });
     }
 

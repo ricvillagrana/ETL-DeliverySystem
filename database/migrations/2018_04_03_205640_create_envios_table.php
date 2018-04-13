@@ -14,11 +14,15 @@ class CreateEnviosTable extends Migration
     public function up()
     {
         Schema::create('envios', function (Blueprint $table) {
-            $table->increments('id');
+            $table->integer('id');
             $table->integer('id_orden');
-            $table->boolean('entregado')->default(false);
+            $table->string('nombre_cliente');
+            $table->string('firmado_por')->nullable();
             $table->date('fecha');
             $table->string('folio_factura');
+            $table->string('estatus');
+            $table->timestamps();
+            $table->integer('etl');
         });
     }
 

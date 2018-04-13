@@ -21,8 +21,8 @@ class EnviosController extends Controller
         $data['columns'] = [
             'Número de envío', 
             'Número de orden',
-            'Enviado',
-            'Entregado',
+            'Nombre del cliente',
+            'Estatus de envío',
             'Quién firmó',
             'Folio de la factura',
             'Fecha de creación'
@@ -30,8 +30,8 @@ class EnviosController extends Controller
         $data['params'] = [
             'id_envio',
             'id_orden',
-            'id_envio_estatus',
-            'entregado',
+            'nombre_cliente',
+            'estatus',
             'firmado_por',
             'folio_factura',
             'creado_en'

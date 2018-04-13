@@ -18,9 +18,9 @@ class CargaGasController extends Controller
         $data['tableName'] = "Carga Gas";
         $data['columns'] = [
             'Número de carga',
-            'Número de empleado', 
+            'Nombre del empleado', 
             'Número de vehiculo',
-            'Número de estación de gas',
+            'Estación de gas',
             'Cantidad (Litros)',
             'Precio / Litro',
             'Total',
@@ -29,9 +29,9 @@ class CargaGasController extends Controller
         ];
         $data['params'] = [
             'id_carga',
-            'id_conductor',
+            'nombre_trabajador',
             'id_vehiculo',
-            'id_estacion_gas',
+            'nombre_estacion',
             'cantidad',
             'precio_litro',
             'total',
