@@ -14,7 +14,7 @@ class CreateDevolucionesTable extends Migration
     public function up()
     {
         Schema::create('devoluciones', function (Blueprint $table) {
-            $table->integer('id');
+            $table->integer('id')->unique();
             $table->integer('id_orden');
             $table->integer('id_prenda');
             $table->string('nombre_cliente');

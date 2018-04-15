@@ -13,9 +13,11 @@ let mix = require('laravel-mix');
 
 mix.js([
     'resources/assets/js/app.js',
-    'resources/assets/js/vague.js',
-    'resources/assets/js/freeze_header.js',
     'node_modules/chart.js/src/chart.js',
-], 'public/js')
-   .sass('resources/assets/sass/app.scss', 'public/css');
-   
+    'node_modules/jquery/src/jquery.js',
+    'node_modules/sweetalert2/dist/sweetalert2.all.min.js',
+    'node_modules/popper.js/dist/popper.js',
+    'node_modules/bootstrap/dist/js/bootstrap.js',
+    'node_modules/code-prettify/src/prettify.js',
+    'resources/assets/js/freeze_header.js',
+], 'public/js').sass('resources/assets/sass/app.scss', 'public/css');

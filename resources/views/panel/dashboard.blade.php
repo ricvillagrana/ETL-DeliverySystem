@@ -25,24 +25,24 @@
         type: 'line',
         data: {
             labels: [
-                "Envíos", 
-                "Vehículo Día",
-                "Envíos vehículo día",
                 "Carga gas",
-                "Devoluciones",
-                "Órdenes",
                 "Conductores",
+                "Devoluciones",
+                "Envíos", 
+                "Envíos vehículo día",
+                "Órdenes",
+                "Vehículo Día",
             ],
             datasets: [{
-                label: '# de registros',
+                label: 'Registros sanos',
                 data: [
-                    {{ $count['envios'] }},
-                    {{ $count['vehiculo_dia'] }},
-                    {{ $count['envio_vehiculo_dia'] }},
                     {{ $count['carga_gas'] }},
-                    {{ $count['devoluciones'] }},
-                    {{ $count['ordenes'] }},
                     {{ $count['conductores'] }},
+                    {{ $count['devoluciones'] }},
+                    {{ $count['envios'] }},
+                    {{ $count['envio_vehiculo_dia'] }},
+                    {{ $count['ordenes'] }},
+                    {{ $count['vehiculo_dia'] }},
                 ],
                 borderColor: [
                 '#007bff',
@@ -50,7 +50,7 @@
                 borderWidth: 1
             },
             {
-                label: '# de campos con error',
+                label: 'Errores (En BD Dummie)',
                 data: [
                     {{ $count['error_envios'] }},
                     {{ $count['error_vehiculo_dia'] }},

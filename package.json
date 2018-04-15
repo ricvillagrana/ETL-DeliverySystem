@@ -21,9 +21,13 @@
         "code-prettify": "^0.1.0"
     },
     "dependencies": {
+        "bootstrap-vue": "^2.0.0-rc.6",
         "bower": "^1.8.4",
         "chart.js": "^2.7.2",
         "code-prettify": "^0.1.0",
-        "font-awesome": "^4.7.0"
+        "fix-table-header": "^1.0.3",
+        "font-awesome": "^4.7.0",
+        "jquery-sticky-table-header": "^1.0.0",
+        "sweetalert2": "^7.18.0"
     }
 }

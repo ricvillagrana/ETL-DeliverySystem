@@ -82,7 +82,7 @@
                     <div class="progress mb-4">
                         <div id="etl-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
                     </div>
-                    <a href="#" id="next-etl-btn" style="display:none;" class="btn btn-success w-50 mx-auto">Corregir errores</a>
+                    <a href="/etl/errors" id="next-etl-btn" style="display:none;" class="btn btn-success w-50 mx-auto">Ver errores</a>
                     <button id="close-etl-btn" @click="etl_finish()" style="display:none;" class="mt-3 btn btn-outline-secondary w-25 mx-auto"> Cerrar</button>
                 </div>
             </div>
@@ -92,6 +92,7 @@
 @endsection
 @section('additional-js')
 <script>
+
     let etl = new Vue({
         el: '#app-etl',
         
@@ -189,7 +190,7 @@
                                                 }});
                                                 setTimeout(function(){
                                                     etl.message = 'Migrando tabla de conductores...'
-                                                    $.ajax({url: '{{ URL::to('/etl/do/ordenes') }}', success: function(result){
+                                                    $.ajax({url: '{{ URL::to('etl/do/conductores') }}', success: function(result){
                                                         etl.percentage = '99%'
                                                         $('#etl-progress-bar').css('width', etl.percentage)
                                                         etl.message = 'Migración de conductores completada con éxito.'
@@ -208,15 +209,15 @@
                                                     $('#etl-progress-bar').addClass('bg-success')
                                                     // Disable etl-begin button
                                                     $("#etl-begin").prop('disabled', true) ;
-                                                },100)
-                                            },100)
-                                        },100)
-                                    },100)
-                                },100)
-                            },100)
-                        },100)
-                    },100)
-                },100)
+                                                },1)
+                                            },1)
+                                        },1)
+                                    },1)
+                                },1)
+                            },1)
+                        },1)
+                    },1)
+                },300)
             },
             etl_finish: function(){
                 $('#fg-wall').css('top', "100%");

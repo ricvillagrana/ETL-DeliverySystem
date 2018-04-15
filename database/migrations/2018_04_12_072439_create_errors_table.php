@@ -20,6 +20,7 @@ class CreateErrorsTable extends Migration
             $table->string('field');
             $table->text('comment');
             $table->boolean('solved')->default(false);
+            $table->boolean('auto_fix')->default(false);
             $table->integer('etl');
             $table->timestamps();
         });
