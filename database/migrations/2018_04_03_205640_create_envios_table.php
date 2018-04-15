@@ -14,7 +14,7 @@ class CreateEnviosTable extends Migration
     public function up()
     {
         Schema::create('envios', function (Blueprint $table) {
-            $table->integer('id');
+            $table->integer('id')->unique();
             $table->integer('id_orden');
             $table->string('nombre_cliente');
             $table->string('firmado_por')->nullable();

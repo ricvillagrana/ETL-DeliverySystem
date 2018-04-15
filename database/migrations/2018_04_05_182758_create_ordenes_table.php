@@ -14,7 +14,7 @@ class CreateOrdenesTable extends Migration
     public function up()
     {
         Schema::create('ordenes', function (Blueprint $table) {
-            $table->integer('id');
+            $table->integer('id')->unique();
             $table->string('nombre_cliente');
             $table->datetime('fecha');
             $table->float('subtotal', 12, 3);

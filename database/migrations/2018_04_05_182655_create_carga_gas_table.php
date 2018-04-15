@@ -14,7 +14,7 @@ class CreateCargaGasTable extends Migration
     public function up()
     {
         Schema::create('carga_gas', function (Blueprint $table) {
-            $table->integer('id');
+            $table->integer('id')->unique();
             $table->string('nombre_trabajador');
             $table->string('nombre_estacion');
             $table->float('cantidad', 12, 3);

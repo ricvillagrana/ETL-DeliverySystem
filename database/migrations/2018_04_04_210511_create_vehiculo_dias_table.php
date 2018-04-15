@@ -14,7 +14,7 @@ class CreateVehiculoDiasTable extends Migration
     public function up()
     {
         Schema::create('vehiculo_dias', function (Blueprint $table) {
-            $table->integer('id');
+            $table->integer('id')->unique();
             $table->string('nombre_trabajador');
             $table->date('fecha');
             $table->float('gas_inicial', 12, 3);
