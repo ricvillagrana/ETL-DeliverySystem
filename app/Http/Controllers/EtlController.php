@@ -2,8 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\User;
+use App\Sources;
+use App\SourcesLocal;
+use App\CargaGas;
+use App\Envio;
+use App\VehiculoDia;
+use App\EnvioVehiculoDia;
+use App\Devoluciones;
+use App\Ordenes;
+use App\Empleado;
+use App\Sqlsrv;
+use App\Etl;
 use App\Error;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EtlController extends Controller
 {
@@ -27,12 +40,118 @@ class EtlController extends Controller
     public function errors () {
         if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
         $data['user'] = session('user');
-        $data['errors'] = Error::all();
-        $data['error_quantity'] = Error::all()->count();
+        $data['errors'] = Error::where('solved', '<>', '1')->get();
+        $data['auto_fix'] = Error::where('auto_fix', '<>', '')->count() != 0 ? true : false;
+        $data['error_quantity'] = Error::where('solved', '<>', '1')->count();
+        $data['error_quantity_total'] = Error::all()->count();
         return view('panel.errors', $data);
     }
     
-    public function autoCorrect () 
+    public function autoFix () 
+    {
+        $errors = Error::all();
+        $fixed = [];
+        foreach($errors as $error){
+            if($error->auto_fix != ''){
+                $error->solved = true;
+                if(false !== strpos($error->field, 'hora')){
+                    $time = new \DateTime($error->auto_fix);
+                    $error->auto_fix = $time->format('H:i:s');
+                }
+                if(false !== strpos($error->field, 'fecha') || false !== strpos($error->field, 'creado')){
+                    $date = new \DateTime($error->auto_fix);
+                    $error->auto_fix = $date->format('Y-m-d H:i:s');
+                }
+                $error->original = (array)DB::select("SELECT $error->field FROM $error->table WHERE id = $error->id_error")[0];
+                $error->original = $error->original[$error->field];
+                $error->save();
+                $row = DB::select("update $error->table set $error->field = '$error->auto_fix' where id = $error->id_error");
+                array_push($fixed, $row);
+            }
+        }
+    }
+    
+    public function check () 
+    {
+        $errors = Error::solved();
+        if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
+        $data['user'] = session('user');
+        // Getting data from Envios
+        $envios['table_name'] = "Envios";
+        $envios['headers'] = ['Nombre del cliente', 'Persona que firma de recibido', 'Fecha', 'Folio de la factura', 'Estatus de la entrega'];
+        $envios['indexes'] = ['nombre_cliente', 'firmado_por', 'fecha', 'folio_factura', 'estatus'];
+        $rows = json_decode(json_encode(Envio::solved()),true);
+        $envios['data'] = [];
+        foreach($rows as $row){
+            if(!isset($envios['data'][$row['id_error']])){
+                $envios['data'][$row['id_error']]= $row;
+                $envios['data'][$row['id_error']]['field'] = [$row['field']];
+                $envios['data'][$row['id_error']]['comment'] = [$row['comment']];
+                $envios['data'][$row['id_error']]['id_error'] = [$row['id_error']];
+                $envios['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
+                $envios['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
+            }else{
+                array_push($envios['data'][$row['id_error']]['field'], $row['field']);
+                array_push($envios['data'][$row['id_error']]['comment'], $row['comment']);
+                array_push($envios['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
+                array_push($envios['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
+            }
+        }
+        $data['tables']['envios'] = $envios;
+        
+        // Getting data from Vehículo Día
+        $vehiculo_dias['table_name'] = "Vehículo Día";
+        $vehiculo_dias['headers'] = ['Nombre del trabajador', 'Gasolina inicial', 'Gasolina final', 'Gasolina consumida', 'Km inicial', 'Km final', 'Km recorridos', 'Hora inicial', 'Hora final', 'fecha'];
+        $vehiculo_dias['indexes'] = ['nombre_trabajador', 'gas_inicial', 'gas_final', 'gas_consumida', 'km_inicial', 'km_final', 'km_recorridos', 'hora_inicio', 'hora_fin', 'fecha'];
+        $rows = json_decode(json_encode(VehiculoDia::solved()),true);
+        $vehiculo_dias['data'] = [];
+        foreach($rows as $row){
+            if(!isset($vehiculo_dias['data'][$row['id_error']])){
+                $vehiculo_dias['data'][$row['id_error']]= $row;
+                $vehiculo_dias['data'][$row['id_error']]['field'] = [$row['field']];
+                $vehiculo_dias['data'][$row['id_error']]['comment'] = [$row['comment']];
+                $vehiculo_dias['data'][$row['id_error']]['id_error'] = [$row['id_error']];
+                $vehiculo_dias['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
+                $vehiculo_dias['data'][$row['id_error']]['original'] = [$row['original']];
+            }else{
+                array_push($vehiculo_dias['data'][$row['id_error']]['field'], $row['field']);
+                array_push($vehiculo_dias['data'][$row['id_error']]['comment'], $row['comment']);
+                array_push($vehiculo_dias['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
+                array_push($vehiculo_dias['data'][$row['id_error']]['original'], $row['original']);
+            }
+        }
+        $data['tables']['vehiculo_dias'] = $vehiculo_dias;
+        
+        // Getting data from Carga Gas
+        $carga_gas['table_name'] = "Carga Gas";
+        $carga_gas['headers'] = ['Nombre del trabajador', 'Nombre de la estación', 'Cantidad (Litros)', 'Precio', 'Total', 'Fecha'];
+        $carga_gas['indexes'] = ['nombre_trabajador', 'nombre_estacion', 'cantidad', 'precio_litro', 'total', 'fecha'];
+        $rows = json_decode(json_encode(CargaGas::solved()),true);
+        $carga_gas['data'] = [];
+        foreach($rows as $row){
+            if(!isset($carga_gas['data'][$row['id_error']])){
+                $carga_gas['data'][$row['id_error']]= $row;
+                $carga_gas['data'][$row['id_error']]['field'] = [$row['field']];
+                $carga_gas['data'][$row['id_error']]['comment'] = [$row['comment']];
+                $carga_gas['data'][$row['id_error']]['id_error'] = [$row['id_error']];
+                $carga_gas['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
+                $carga_gas['data'][$row['id_error']]['original'] = [$row['original']];
+            }else{
+                array_push($carga_gas['data'][$row['id_error']]['field'], $row['field']);
+                array_push($carga_gas['data'][$row['id_error']]['comment'], $row['comment']);
+                array_push($carga_gas['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
+                array_push($carga_gas['data'][$row['id_error']]['original'], $row['original']);
+            }
+        }
+        $data['tables']['carga_gas'] = $carga_gas;
+        
+        // Debug
+        // return json_encode($data);
+        
+        return view('panel.editable', $data);
+    }
+    
+    public function check2 () 
     {
         if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
         // Get errors
@@ -43,7 +162,7 @@ class EtlController extends Controller
         $traitment['vehiculo_dias'] = [];
         foreach($errors['vehiculo_dias'] as $error){
             if(!isset($traitment['vehiculo_dias'][$error->id_error]))
-                $traitment['vehiculo_dias'][$error->id_error] = \App\VehiculoDia::find($error->id_error);
+            $traitment['vehiculo_dias'][$error->id_error] = \App\VehiculoDia::find($error->id_error);
             if(is_array($traitment['vehiculo_dias'][$error->id_error]['field'])){
                 $traitment['vehiculo_dias'][$error->id_error]['field']   = array_merge($traitment['vehiculo_dias'][$error->id_error]['field'], [$error->field]);
                 $traitment['vehiculo_dias'][$error->id_error]['comment'] = array_merge($traitment['vehiculo_dias'][$error->id_error]['comment'], [$error->comment]);
