@@ -10,6 +10,20 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+// Using Models
+use App\SourcesLocal;
+use App\CargaGas;
+use App\Envio;
+use App\VehiculoDia;
+use App\EnvioVehiculoDia;
+use App\Devoluciones;
+use App\Ordenes;
+use App\Empleado;
+use App\Etl;
+use App\Error;
+use App\Misc;
+Use App\Sqlsrv;
+use Illuminate\Http\Request;
 
 // Navigation
 Route::get('/', 'UsersController@login');
@@ -19,8 +33,39 @@ Route::get('/dashboard', 'UsersController@dashboard');
 Route::get('/etl', 'EtlController@etl');
 Route::get('/etl/errors', 'EtlController@errors');
 Route::get('/etl/begin', 'EtlController@begin');
-Route::get('/etl/auto-corrections/check', 'EtlController@checkErrors');
-Route::get('etl/do/auto-corrections', 'EtlController@autoCorrect');
+Route::get('/etl/do/auto-fix', 'EtlController@autoFix');
+Route::get('/etl/check', 'EtlController@check');
+Route::post('/etl/check/change', function(Request $request){
+    $table  = $request->input('table');
+    $field  = $request->input('field');
+    $data   = $request->input('data');
+    $id     = $request->input('id');
+    if(strpos($field, 'fecha') !== false || strpos($field, 'creado') !== false ){
+        $date = new \DateTime($data);
+        $data = $date->format('Y-m-d H:i:s');
+    }else if(strpos($field, 'hora') !== false){
+        $date = new \DateTime($data);
+        $data = $date->format('H:i:s');
+    }
+    return DB::select("UPDATE $table SET $field = '$data' WHERE id = $id");
+});
+Route::post('/etl/check/change_all', function(Request $request){
+    $table  = $request->input('table');
+    $field  = $request->input('field');
+    $data   = $request->input('data');
+    if(strpos($field, 'fecha') !== false || strpos($field, 'creado') !== false ){
+        $date = new \DateTime($data);
+        $data = $date->format('Y-m-d H:i:s');
+    }else if(strpos($field, 'hora') !== false){
+        $date = new \DateTime($data);
+        $data = $date->format('H:i:s');
+    }
+    $res = null;
+    foreach(Error::where('solved', '=', '1')->get() as $error){
+        $res = DB::select("UPDATE $table SET $field = '$data' WHERE id = $error->id_error");
+    }
+    return $res;
+});
 // User
 Route::post('/auth', 'UsersController@auth');
 Route::post('/create', 'UsersController@create');
@@ -35,22 +80,10 @@ Route::get('/fuentes-datos/ordenes', 'OrdenesController@index');
 Route::get('/fuentes-datos/conductores', 'ConductoresController@index');
 
 
-// Using Models
-use App\SourcesLocal;
-use App\CargaGas;
-use App\Envio;
-use App\VehiculoDia;
-use App\EnvioVehiculoDia;
-use App\Devoluciones;
-use App\Ordenes;
-use App\Empleado;
-use App\Etl;
-use App\Error;
-use App\Misc;
-Use App\Sqlsrv;
-
 Route::get('/debug', function(){
-    dd(session('error'));
+    foreach(Error::where('solved', '=', '1')->get() as $error){
+        echo $error->id_error;
+    }
 });
 
 /**
@@ -98,7 +131,8 @@ Route::get('/etl/do/carga_gas', function(){
                 'id_error'  => $carga->id_carga,
                 'field'     => 'nombre_trabajador',
                 'comment'   => 'Un nombre no puede contener números.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => str_replace('/[0-9]/', '', $carga->nombre_trabajador)
             ]);
         endif;
         if((float)$carga->cantidad < 0):
@@ -108,7 +142,8 @@ Route::get('/etl/do/carga_gas', function(){
                 'id_error'  => $carga->id_carga,
                 'field'     => 'cantidad',
                 'comment'   => 'La cantidad no puede ser menor a 0.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
         if((float)preg_replace('/[^A-Za-z0-9\.]/', '', $carga->precio_litro) < 0):
@@ -118,7 +153,8 @@ Route::get('/etl/do/carga_gas', function(){
                 'id_error'  => $carga->id_carga,
                 'field'     => 'precio_litro',
                 'comment'   => 'El precio no puede ser menor a 0.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
         if(Misc::cast_float($carga->total) != Misc::cast_float(Misc::cast_float($carga->precio_litro) * Misc::cast_float($carga->cantidad))):
@@ -128,7 +164,8 @@ Route::get('/etl/do/carga_gas', function(){
                 'id_error'  => $carga->id_carga,
                 'field'     => 'total',
                 'comment'   => 'El total debe ser (Precio_litro * cantidad), se sugiere que sea '.Misc::cast_float(Misc::cast_float($carga->precio_litro) * Misc::cast_float($carga->cantidad)),
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => Misc::cast_float(Misc::cast_float($carga->precio_litro) * Misc::cast_float($carga->cantidad))
             ]);
         endif;
         if(strtotime($carga->fecha_carga) > time()):
@@ -138,7 +175,8 @@ Route::get('/etl/do/carga_gas', function(){
                 'id_error'  => $carga->id_carga,
                 'field'     => 'fecha',
                 'comment'   => 'No se puede tener una fecha futura.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
         if($carga->folio_factura == "''" || $carga->folio_factura == null):
@@ -148,7 +186,8 @@ Route::get('/etl/do/carga_gas', function(){
                 'id_error'  => $carga->id_carga,
                 'field'     => 'folio_factura',
                 'comment'   => 'No existe un folio de la factura.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
             $c                      = new CargaGas;
@@ -167,7 +206,7 @@ Route::get('/etl/do/carga_gas', function(){
             endif;
     endforeach;
 });
-Route::get('etl/do/envios', function(){
+Route::get('/etl/do/envios', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
     $error = false;
     $envios = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'envios')->first()->url));
@@ -180,7 +219,8 @@ Route::get('etl/do/envios', function(){
                 'id_error'  => $envio->id_envio,
                 'field'     => 'firmado_por',
                 'comment'   => 'Un nombre no puede contener números.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => str_replace('/[0-9]/', '', $envio->firmado_por)
             ]);
         endif;
         if(preg_match('/[0-9]/', $envio->nombre_cliente)):
@@ -190,7 +230,8 @@ Route::get('etl/do/envios', function(){
                 'id_error'  => $envio->id_envio,
                 'field'     => 'nombre_cliente',
                 'comment'   => 'Un nombre no puede contener números.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => str_replace('/[0-9]/', '', $envio->nombre_cliente)
             ]);
         endif;
         if($envio->folio_factura == null || $envio->folio_factura == "''"):
@@ -200,7 +241,8 @@ Route::get('etl/do/envios', function(){
                 'id_error'  => $envio->id_envio,
                 'field'     => 'folio_factura',
                 'comment'   => 'No existe un folio de factura.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
         if(strtotime($envio->creado_en) > time() ):
@@ -210,7 +252,8 @@ Route::get('etl/do/envios', function(){
                 'id_error'  => $envio->id_envio,
                 'field'     => 'creado_en',
                 'comment'   => 'No se puede tener una fecha futura.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
             $e                  = new Envio;
@@ -229,7 +272,7 @@ Route::get('etl/do/envios', function(){
             endif;
     endforeach;
 });
-Route::get('etl/do/vehiculo_dias', function(){
+Route::get('/etl/do/vehiculo_dias', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
     $error;
     $vehiculoDias = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'vehiculodia')->first()->url));
@@ -242,7 +285,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'gas_consumida',
                 'comment'   => 'La gasolina que se consumió no puede ser negativa.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => '0'
             ]);
         endif;
         if($vehiculoDia->km_recorridos < 0):
@@ -252,7 +296,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'km_recorridos',
                 'comment'   => 'La kilómetros que se recorrieron no pueden ser negativos (a menos que hayas ido de reversa).',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => '0'
             ]);
         endif;
         if($vehiculoDia->gas_inicial < 0):
@@ -262,7 +307,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'gas_inicial',
                 'comment'   => 'La gasolina no puede ser negativa.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => '0'
             ]);
         endif;
         if($vehiculoDia->gas_final < 0):
@@ -272,7 +318,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'gas_final',
                 'comment'   => 'La gasolina no puede ser negativa.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => '0'
             ]);
         endif;
         if($vehiculoDia->km_inicial > $vehiculoDia->km_final):
@@ -282,7 +329,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'km_final',
                 'comment'   => 'No puedes terminar con un kilometraje menor al inicial.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => $vehiculoDia->km_final
             ]);
         endif;
         if($vehiculoDia->km_inicial < 0):
@@ -292,7 +340,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'km_inicial',
                 'comment'   => 'No puedes tener kilometraje negativo',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => '0'
             ]);
         endif;
         if($vehiculoDia->km_final < 0):
@@ -302,7 +351,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'km_final',
                 'comment'   => 'No puedes tener kilometraje negativo',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => $vehiculoDia->km_final
             ]);
         endif;
         if(strtotime($vehiculoDia->fecha_dia) > time() ):
@@ -312,7 +362,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'fecha',
                 'comment'   => 'No se puede tener una fecha futura.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
         if($vehiculoDia->hora_inicio == null):
@@ -322,7 +373,8 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'hora_inicio',
                 'comment'   => 'La hora de inicio no puede estar vacía.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => '09:00am'
             ]);
         endif;
         if($vehiculoDia->hora_fin == null):
@@ -331,15 +383,16 @@ Route::get('etl/do/vehiculo_dias', function(){
                 'table'     => 'vehiculo_dias',
                 'id_error'  => $vehiculoDia->id_vehiculo_dia,
                 'field'     => 'hora_fin',
-                'comment'   => 'La hora de inicio no puede estar vacía.',
-                'etl'       => session('id_etl')
+                'comment'   => 'La hora de finalización no puede estar vacía.',
+                'etl'       => session('id_etl'),
+                'auto_fix'  => '05:00pm'
             ]);
         endif;
             $vd                     = new VehiculoDia;
             $vd->id                 = $vehiculoDia->id_vehiculo_dia;
             $vd->nombre_trabajador  = $vehiculoDia->nombre_trabajador;
             $vd->fecha              = $vehiculoDia->fecha_dia;
-            $vd->gas_inicial         = $vehiculoDia->gas_inicial;
+            $vd->gas_inicial        = $vehiculoDia->gas_inicial;
             $vd->gas_final          = $vehiculoDia->gas_final;
             $vd->km_inicial         = $vehiculoDia->km_inicial;
             $vd->km_final           = $vehiculoDia->km_final;
@@ -355,7 +408,7 @@ Route::get('etl/do/vehiculo_dias', function(){
             endif;
     endforeach;
 });
-Route::get('etl/do/envio_vehiculo_dias', function(){
+Route::get('/etl/do/envio_vehiculo_dias', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
     $envioVehiculoDias  = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'enviovehiculodia'  )->first()->url));
     if(sizeof($envioVehiculoDias) == (Envio::all()->count() + Sqlsrv\Envio::all()->count())){return "update_failed";}
@@ -367,7 +420,7 @@ Route::get('etl/do/envio_vehiculo_dias', function(){
             Sqlsrv\EnvioVehiculoDia::create($evd->toArray());
     endforeach;
 });
-Route::get('etl/do/devoluciones', function(){
+Route::get('/etl/do/devoluciones', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
     $error;
     $devoluciones = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'devoluciones'      )->first()->url));
@@ -380,7 +433,8 @@ Route::get('etl/do/devoluciones', function(){
                 'id_error'  => $devolucion->id_devolucion,
                 'field'     => 'nombre_cliente',
                 'comment'   => 'Un nombre no puede contener números.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => str_replace('/[0-9]/', '', $devolucion->nombre_cliente)
             ]);
         endif;
         if($devolucion->cantidad < 0):
@@ -390,7 +444,8 @@ Route::get('etl/do/devoluciones', function(){
                 'id_error'  => $devolucion->id_devolucion,
                 'field'     => 'cantidad',
                 'comment'   => 'No puede ser una cantidad negativa.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => '0'
             ]);
         endif;
             $d                  = new Devoluciones;
@@ -408,7 +463,7 @@ Route::get('etl/do/devoluciones', function(){
             endif;
     endforeach;
 });
-Route::get('etl/do/ordenes', function(){
+Route::get('/etl/do/ordenes', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
     $error;
     $ordenes = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'ordenes')->first()->url));
@@ -421,7 +476,8 @@ Route::get('etl/do/ordenes', function(){
                 'id_error'  => $orden->id_orden,
                 'field'     => 'nombre_cliente',
                 'comment'   => 'Un nombre no puede contener números.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => str_replace('/[0-9]/', '', $orden->nombre_cliente)
             ]);
         endif;
         if(strtotime($orden->creado_en) > time() ):
@@ -431,7 +487,8 @@ Route::get('etl/do/ordenes', function(){
                 'id_error'  => $orden->id_orden,
                 'field'     => 'creado_en',
                 'comment'   => 'No se puede tener una fecha futura.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
         if(Misc::cast_float($orden->iva) != Misc::cast_float(Misc::cast_float($orden->subtotal) * 0.16)):
@@ -441,7 +498,8 @@ Route::get('etl/do/ordenes', function(){
                 'id_error'  => $orden->id_orden,
                 'field'     => 'iva',
                 'comment'   => 'El IVA no corresponde al 16% del subtotal.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => Misc::cast_float(Misc::cast_float($orden->subtotal) * 0.16)
             ]);
         endif;
         if(Misc::cast_float($orden->total) != Misc::cast_float(Misc::cast_float($orden->subtotal) + Misc::cast_float($orden->iva))):
@@ -451,7 +509,8 @@ Route::get('etl/do/ordenes', function(){
                 'id_error'  => $orden->id_orden,
                 'field'     => 'total',
                 'comment'   => 'El total no corresponde a la suma del subtotal y el IVA.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => Misc::cast_float(Misc::cast_float($orden->subtotal) + Misc::cast_float($orden->iva))
             ]);
         endif;
             $date = new DateTime($orden->creado_en);
@@ -471,7 +530,7 @@ Route::get('etl/do/ordenes', function(){
             endif;
     endforeach;
 });
-Route::get('etl/do/conductores', function(){
+Route::get('/etl/do/conductores', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
     $error;
     $conductores = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'conductores')->first()->url));
@@ -484,7 +543,8 @@ Route::get('etl/do/conductores', function(){
                 'id_error'  => $conductor->id_conductor,
                 'field'     => 'nombre',
                 'comment'   => 'Un nombre no puede contener números.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => str_replace('/[0-9]/', '', $conductor->nombre)
             ]);
         endif;
         if(preg_match('/[0-9]/', $conductor->apellido)):
@@ -494,7 +554,8 @@ Route::get('etl/do/conductores', function(){
                 'id_error'  => $conductor->id_conductor,
                 'field'     => 'apellido',
                 'comment'   => 'Un apellido no puede contener números.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => str_replace('/[0-9]/', '', $conductor->apellido)
             ]);
         endif;
         if(strlen($conductor->rfc) != 13):
@@ -504,7 +565,8 @@ Route::get('etl/do/conductores', function(){
                 'id_error'  => $conductor->id_conductor,
                 'field'     => 'rfc',
                 'comment'   => 'Un RFC debe contener 13 caracteres, 10 del RFC y 3 de clave única.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
         if(strtotime($conductor->creado_en) > time() ):
@@ -514,7 +576,8 @@ Route::get('etl/do/conductores', function(){
                 'id_error'  => $conductor->id_conductor,
                 'field'     => 'creado_en',
                 'comment'   => 'No se puede tener una fecha de inicio de labores futura.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
         if(strtotime($conductor->fecha_nac) > time() ):
@@ -524,7 +587,8 @@ Route::get('etl/do/conductores', function(){
                 'id_error'  => $conductor->id_conductor,
                 'field'     => 'fecha_nac',
                 'comment'   => 'El empleado debiera haber nacido ya, la fecha hace referencia al futuro.',
-                'etl'       => session('id_etl')
+                'etl'       => session('id_etl'),
+                'auto_fix'  => ''
             ]);
         endif;
             $e                      = new Empleado;

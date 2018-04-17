@@ -7,11 +7,15 @@
 @section('dashboard-content')
 <div class="card mb-4 box-shadow mx-auto w-50">
     <div class="card-header">
-        <h4 class="my-0 font-weight-normal"> {{ $error_quantity }} errores encontrados </h4>
+        <h4 class="my-0 font-weight-normal"> {{ $error_quantity }}/{{ $error_quantity_total }} errores </h4>
     </div>
     <div class="card-body">
         Haz click para ir a la corrección.
-        <button @click="correct()" id="corrections-btn" type="button" class="mt-2 btn btn-lg btn-block btn-outline-success" {{ $error_quantity == 0 ? 'disabled' : '' }}>Comenzar el proceso de corrección</button>
+        @if($error_quantity == $error_quantity_total)
+            <button @click="{{ $auto_fix ? 'auto_correct()' : 'correct()' }}" id="corrections-btn" type="button" class="mt-2 btn btn-lg btn-block btn-outline-success" {{ $error_quantity == 0 ? 'disabled="disabled"' : '' }}>Comenzar el proceso de corrección</button>
+        @else
+            <button @click="correct()" type="button" class="mt-2 btn btn-lg btn-block btn-outline-success">Correcciones</button>
+        @endif
     </div>
 </div>
 <h3> Lista de errores </h3>
@@ -21,6 +25,7 @@
         <th scope="col"> Número de registro </th>
         <th scope="col"> Campo </th>
         <th scope="col"> Descripción del error </th>
+        <th scope="col"> Valor sugerido </th>
     </thead>
     <tbody>
         @foreach ($errors as $error)
@@ -29,6 +34,7 @@
             <td> {{ $error->id_error }} </td>
             <td> {{ $error->field }} </td>
             <td> {{ $error->comment }} </td>
+            <td> {{ $error->auto_fix }} </td>
         </tr>
         @endforeach
     </tbody>
@@ -45,13 +51,16 @@
         },
         methods: {
             correct: function(){
+                window.location = '{{ URL::to("/etl/check") }}';
+            },
+            auto_correct: function(){
                 swal({
-                    title: 'Hay errores que se pueden corregir automáticamente',
+                    title: 'Hay errores que se pueden corregir de manera automática.',
                     text: "¿Deseas corregirlos ahora?",
                     type: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Sí, corregir',
-                    cancelButtonText: 'No, yo lo haré manualmente',
+                    cancelButtonText: 'No, no corregir',
                     confirmButtonClass: 'btn btn-success',
                     cancelButtonClass: 'btn btn-danger',
                     buttonsStyling: false,
@@ -61,7 +70,7 @@
                         // Corregidos
                         $.ajaxSetup({async:false})
                         $.ajax({
-                            url: '{{ URL::to("/etl/auto-corrections/check") }}',
+                            url: '{{ URL::to("/etl/do/auto-fix") }}',
                             success: (result) => {
                                 swal({
                                     title: 'Listo',
@@ -75,7 +84,7 @@
                                     showCancelButton: false,
                                 }).then((result) => {
                                     if (result.value) {
-                                        window.location = '{{ URL::to("/etl/corrections") }}';
+                                        window.location = '{{ URL::to("/etl/check") }}';
                                     }
                                 })
                             },
@@ -90,13 +99,9 @@
                         });
                         
                         console.log('corregido')
-                    } else if (
-                    // Read more about handling dismissals
-                    result.dismiss === swal.DismissReason.cancel
-                    ) {
+                    } else if ( result.dismiss === swal.DismissReason.cancel) {
                         // No corregidos
-                        window.location = '{{ URL::to("/etl/corrections") }}';
-                        console.log('no corregido')
+                        this.correct()
                     }
                 })
             }
