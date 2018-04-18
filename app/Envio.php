@@ -9,10 +9,20 @@ class Envio extends Model
     public static function solved ($solved = true) 
     {
         return \DB::select("
-            SELECT * FROM envios e join errors er
-                ON e.id = er.id_error
-            WHERE er.table = 'envios'
-            AND er.solved = $solved
+        SELECT * FROM envios cg join errors er
+        ON cg.id = er.id_error
+        WHERE er.table = 'envios'
+        AND er.solved = $solved
         ");
     }
+    public static function solvedClean ($solved = true) 
+    {
+        return \DB::select("
+        SELECT cg.* FROM envios cg join errors er
+        ON cg.id = er.id_error
+        WHERE er.table = 'envios'
+        AND er.solved = $solved
+        ");
+    }
+
 }

@@ -103,6 +103,7 @@
         
         methods: {
             etl_reset: function(){
+                this.loading()
                 // Enable etl-begin button
                 $("#etl-begin").prop('disabled', false) ;
                 // show buttons
@@ -117,7 +118,7 @@
                 // Set progressbar primary
                 $('#etl-progress-bar').removeClass('bg-success')
                 // Cleaning tables
-                $.ajaxSetup({async: false});
+                $.ajaxSetup({async: true});
                 $.ajax({url: '{{ URL::to('/etl/clean') }}', success: function(result){
                     swal(
                     'ETL reiniciado',
@@ -223,6 +224,14 @@
                 $('#fg-wall').css('top', "100%");
                 $('#content-etl-process').css('top', "100%");
                 $('#content-etl-process').css('opacity', "0");
+            },
+            loading: () => {
+                swal({
+                    title: 'Ejecutando...',
+                    onOpen: () => {
+                        swal.showLoading()
+                    }
+                })
             }
         }
     })

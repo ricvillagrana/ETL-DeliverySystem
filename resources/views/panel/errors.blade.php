@@ -19,7 +19,7 @@
     </div>
 </div>
 <h3> Lista de errores </h3>
-<table id="table-head-freeze" class="table table-hover table-light">
+<table id="table-head-freeze" class="table table-bordered table-hover table-light">
     <thead class="thead-light">
         <th scope="col"> Tabla en la que está </th>
         <th scope="col"> Número de registro </th>
@@ -51,7 +51,7 @@
         },
         methods: {
             correct: function(){
-                window.location = '{{ URL::to("/etl/check") }}';
+                window.location = '{{ URL::to("/etl/corrections") }}';
             },
             auto_correct: function(){
                 swal({
@@ -68,7 +68,8 @@
                 }).then((result) => {
                     if (result.value) {
                         // Corregidos
-                        $.ajaxSetup({async:false})
+                        $.ajaxSetup({async:true})
+                        this.loading()
                         $.ajax({
                             url: '{{ URL::to("/etl/do/auto-fix") }}',
                             success: (result) => {
@@ -102,6 +103,14 @@
                     } else if ( result.dismiss === swal.DismissReason.cancel) {
                         // No corregidos
                         this.correct()
+                    }
+                })
+            },
+            loading: () => {
+                swal({
+                    title: 'Ejecutando...',
+                    onOpen: () => {
+                        swal.showLoading()
                     }
                 })
             }

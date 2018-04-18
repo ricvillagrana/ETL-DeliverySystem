@@ -41,7 +41,7 @@ class EtlController extends Controller
         if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
         $data['user'] = session('user');
         $data['errors'] = Error::where('solved', '<>', '1')->get();
-        $data['auto_fix'] = Error::where('auto_fix', '<>', '')->count() != 0 ? true : false;
+        $data['auto_fix'] = Error::where('auto_fix', '<>', '')->count() > 0 ? true : false;
         $data['error_quantity'] = Error::where('solved', '<>', '1')->count();
         $data['error_quantity_total'] = Error::all()->count();
         return view('panel.errors', $data);
@@ -71,7 +71,7 @@ class EtlController extends Controller
         }
     }
     
-    public function check () 
+    public function check ($param = true) 
     {
         $errors = Error::solved();
         if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
@@ -80,7 +80,7 @@ class EtlController extends Controller
         $envios['table_name'] = "Envios";
         $envios['headers'] = ['Nombre del cliente', 'Persona que firma de recibido', 'Fecha', 'Folio de la factura', 'Estatus de la entrega'];
         $envios['indexes'] = ['nombre_cliente', 'firmado_por', 'fecha', 'folio_factura', 'estatus'];
-        $rows = json_decode(json_encode(Envio::solved()),true);
+        $rows = json_decode(json_encode(Envio::solved($param)),true);
         $envios['data'] = [];
         foreach($rows as $row){
             if(!isset($envios['data'][$row['id_error']])){
@@ -99,34 +99,11 @@ class EtlController extends Controller
         }
         $data['tables']['envios'] = $envios;
         
-        // Getting data from Vehículo Día
-        $vehiculo_dias['table_name'] = "Vehículo Día";
-        $vehiculo_dias['headers'] = ['Nombre del trabajador', 'Gasolina inicial', 'Gasolina final', 'Gasolina consumida', 'Km inicial', 'Km final', 'Km recorridos', 'Hora inicial', 'Hora final', 'fecha'];
-        $vehiculo_dias['indexes'] = ['nombre_trabajador', 'gas_inicial', 'gas_final', 'gas_consumida', 'km_inicial', 'km_final', 'km_recorridos', 'hora_inicio', 'hora_fin', 'fecha'];
-        $rows = json_decode(json_encode(VehiculoDia::solved()),true);
-        $vehiculo_dias['data'] = [];
-        foreach($rows as $row){
-            if(!isset($vehiculo_dias['data'][$row['id_error']])){
-                $vehiculo_dias['data'][$row['id_error']]= $row;
-                $vehiculo_dias['data'][$row['id_error']]['field'] = [$row['field']];
-                $vehiculo_dias['data'][$row['id_error']]['comment'] = [$row['comment']];
-                $vehiculo_dias['data'][$row['id_error']]['id_error'] = [$row['id_error']];
-                $vehiculo_dias['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
-                $vehiculo_dias['data'][$row['id_error']]['original'] = [$row['original']];
-            }else{
-                array_push($vehiculo_dias['data'][$row['id_error']]['field'], $row['field']);
-                array_push($vehiculo_dias['data'][$row['id_error']]['comment'], $row['comment']);
-                array_push($vehiculo_dias['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
-                array_push($vehiculo_dias['data'][$row['id_error']]['original'], $row['original']);
-            }
-        }
-        $data['tables']['vehiculo_dias'] = $vehiculo_dias;
-        
         // Getting data from Carga Gas
         $carga_gas['table_name'] = "Carga Gas";
-        $carga_gas['headers'] = ['Nombre del trabajador', 'Nombre de la estación', 'Cantidad (Litros)', 'Precio', 'Total', 'Fecha'];
+        $carga_gas['headers'] = ['Nombre del trabajador', 'Nombre de la estación', 'Cantidad (Litros)', 'Precio ($)', 'Total ($)', 'Fecha'];
         $carga_gas['indexes'] = ['nombre_trabajador', 'nombre_estacion', 'cantidad', 'precio_litro', 'total', 'fecha'];
-        $rows = json_decode(json_encode(CargaGas::solved()),true);
+        $rows = json_decode(json_encode(CargaGas::solved($param)),true);
         $carga_gas['data'] = [];
         foreach($rows as $row){
             if(!isset($carga_gas['data'][$row['id_error']])){
@@ -144,7 +121,52 @@ class EtlController extends Controller
             }
         }
         $data['tables']['carga_gas'] = $carga_gas;
-        
+
+        // Getting data from Devoluciones
+        $devoluciones['table_name'] = "Devoluciones";
+        $devoluciones['headers'] = ['Nombre del cliente', 'Razón de la devolución', 'Cantidad (prendas)', 'Fecha de devolución'];
+        $devoluciones['indexes'] = ['nombre_cliente', 'razon', 'cantidad', 'created_at'];
+        $rows = json_decode(json_encode(Devoluciones::solved($param)),true);
+        $devoluciones['data'] = [];
+        foreach($rows as $row){
+            if(!isset($devoluciones['data'][$row['id_error']])){
+                $devoluciones['data'][$row['id_error']]= $row;
+                $devoluciones['data'][$row['id_error']]['field'] = [$row['field']];
+                $devoluciones['data'][$row['id_error']]['comment'] = [$row['comment']];
+                $devoluciones['data'][$row['id_error']]['id_error'] = [$row['id_error']];
+                $devoluciones['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
+                $devoluciones['data'][$row['id_error']]['original'] = [$row['original']];
+            }else{
+                array_push($devoluciones['data'][$row['id_error']]['field'], $row['field']);
+                array_push($devoluciones['data'][$row['id_error']]['comment'], $row['comment']);
+                array_push($devoluciones['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
+                array_push($devoluciones['data'][$row['id_error']]['original'], $row['original']);
+            }
+        }
+        $data['tables']['devoluciones'] = $devoluciones;
+
+        // Getting data from Vehículo Día
+        $vehiculo_dias['table_name'] = "Vehículo Día";
+        $vehiculo_dias['headers'] = ['Nombre del trabajador', 'Gasolina inicial', 'Gasolina final', 'Gasolina consumida', 'Km inicial', 'Km final', 'Km recorridos', 'Hora inicial', 'Hora final', 'fecha'];
+        $vehiculo_dias['indexes'] = ['nombre_trabajador', 'gas_inicial', 'gas_final', 'gas_consumida', 'km_inicial', 'km_final', 'km_recorridos', 'hora_inicio', 'hora_fin', 'fecha'];
+        $rows = json_decode(json_encode(VehiculoDia::solved($param)),true);
+        $vehiculo_dias['data'] = [];
+        foreach($rows as $row){
+            if(!isset($vehiculo_dias['data'][$row['id_error']])){
+                $vehiculo_dias['data'][$row['id_error']]= $row;
+                $vehiculo_dias['data'][$row['id_error']]['field'] = [$row['field']];
+                $vehiculo_dias['data'][$row['id_error']]['comment'] = [$row['comment']];
+                $vehiculo_dias['data'][$row['id_error']]['id_error'] = [$row['id_error']];
+                $vehiculo_dias['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
+                $vehiculo_dias['data'][$row['id_error']]['original'] = [$row['original']];
+            }else{
+                array_push($vehiculo_dias['data'][$row['id_error']]['field'], $row['field']);
+                array_push($vehiculo_dias['data'][$row['id_error']]['comment'], $row['comment']);
+                array_push($vehiculo_dias['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
+                array_push($vehiculo_dias['data'][$row['id_error']]['original'], $row['original']);
+            }
+        }
+        $data['tables']['vehiculo_dias'] = $vehiculo_dias;
         // Debug
         // return json_encode($data);
         

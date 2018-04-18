@@ -6,7 +6,7 @@
 @endsection
 @section('dashboard-content')
 <h3> {{ $tableName }} </h3>
-<table id="table-head-freeze" class="table table-hover table-light">
+<table id="table-head-freeze" class="table table-bordered table-hover table-light">
     <thead class="thead-light">
         @foreach ($columns as $column)
         <th scope="col"> {{ $column }} </th>

@@ -66,6 +66,101 @@ Route::post('/etl/check/change_all', function(Request $request){
     }
     return $res;
 });
+Route::post('/etl/check/delete', function(Request $request){
+    $table  = $request->input('table');
+    $id     = $request->input('id');
+    $res = null;
+    DB::select("DELETE FROM errors WHERE id = $id");
+    return DB::select("DELETE FROM $table WHERE id = $id");
+});
+Route::post('/etl/check/send', function(Request $request){
+    $table  = $request->input('table');
+    $id     = $request->input('id');
+
+    if($table == 'carga_gas'){
+        $row = CargaGas::find($id)->toArray();
+        Sqlsrv\CargaGas::create($row);
+        CargaGas::find($id)->delete();
+    }
+    if($table == 'vehiculo_dias'){
+        $row = VehiculoDia::find($id)->toArray();
+        Sqlsrv\VehiculoDia::create($row);
+        VehiculoDia::find($id)->delete();
+    }
+    if($table == 'envio_vehiculo_dias'){
+        $row = EnvioVehiculoDia::find($id)->toArray();
+        Sqlsrv\EnvioVehiculoDia::create($row);
+        EnvioVehiculoDia::find($id)->delete();
+    }
+    if($table == 'envios'){
+        $row = Envio::find($id)->toArray();
+        Sqlsrv\Envio::create($row);
+        Envio::find($id)->delete();
+    }
+    if($table == 'devoluciones'){
+        $row = Devoluciones::find($id)->toArray();
+        Sqlsrv\Devoluciones::create($row);
+        Devoluciones::find($id)->delete();
+    }
+    if($table == 'ordenes'){
+        $row = Ordenes::find($id)->toArray();
+        Sqlsrv\Ordenes::create($row);
+        Ordenes::find($id)->delete();
+    }
+    if($table == 'empleados'){
+        $row = Empleado::find($id)->toArray();
+        Sqlsrv\Empleado::create($row);
+        Empleado::find($id)->delete();
+    }
+    
+});
+Route::post('/etl/check/send-all', function(Request $request){
+    
+    $carga_gas = CargaGas::solvedClean();
+    foreach($carga_gas as $row){
+        if(Sqlsrv\CargaGas::find($row->id) !== null)
+            Sqlsrv\CargaGas::create((array)$row);
+        CargaGas::destroy($row->id);
+    }
+    $vehiculo_dias = VehiculoDia::solvedClean();
+    foreach($vehiculo_dias as $row){
+        if(Sqlsrv\VehiculoDia::find($row->id) !== null)
+            Sqlsrv\VehiculoDia::create((array)$row);
+        VehiculoDia::destroy($row->id);
+    }
+    $envio_vehiculo_dias = EnvioVehiculoDia::solvedClean();
+    foreach($envio_vehiculo_dias as $row){
+        if(Sqlsrv\EnvioVehiculoDia::find($row->id) !== null)
+            Sqlsrv\EnvioVehiculoDia::create((array)$row);
+        EnvioVehiculoDia::destroy($row->id);
+    }
+    $envios = Envio::solvedClean();
+    foreach($envios as $row){
+        if(Sqlsrv\Envio::find($row->id) !== null)
+            Sqlsrv\Envio::create((array)$row);
+        Envio::destroy($row->id);
+    }
+    $ordenes = Ordenes::solvedClean();
+    foreach($ordenes as $row){
+        if(Sqlsrv\Ordenes::find($row->id) !== null)
+            Sqlsrv\Ordenes::create((array)$row);
+        Ordenes::destroy($row->id);
+    }
+    $empleados = Empleado::solvedClean();
+    foreach($empleados as $row){
+        if(Sqlsrv\Empleado::find($row->id) !== null)
+            Sqlsrv\Empleado::create((array)$row);
+        Empleado::destroy($row->id);
+    }
+    $devoluciones = Devoluciones::solvedClean();
+    foreach($devoluciones as $row){
+        if(Sqlsrv\Devoluciones::find($row->id) !== null)
+            Sqlsrv\Devoluciones::create((array)$row);
+        Devoluciones::destroy($row->id);
+    }
+    Error::where('solved', 1)->delete();
+    
+});
 // User
 Route::post('/auth', 'UsersController@auth');
 Route::post('/create', 'UsersController@create');
