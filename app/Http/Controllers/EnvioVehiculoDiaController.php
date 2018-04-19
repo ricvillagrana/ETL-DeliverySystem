@@ -24,7 +24,7 @@ class EnvioVehiculoDiaController extends Controller
             'id_vehiculo_dia',
             'id_envio'
         ];
-        $data['rows'] = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'enviovehiculodia')->first()->url), true);
+        $data['rows'] = \App\Sqlsrv\EnvioVehiculoDia::all();
         return view('panel.table', $data);
     }
 

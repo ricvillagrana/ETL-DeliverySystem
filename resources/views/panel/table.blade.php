@@ -6,7 +6,7 @@
 @endsection
 @section('dashboard-content')
 <h3> {{ $tableName }} </h3>
-<table id="table-head-freeze" class="table table-hover table-light">
+<table id="table-head-freeze" class="table table-bordered table-hover table-light">
     <thead class="thead-light">
         @foreach ($columns as $column)
         <th scope="col"> {{ $column }} </th>
@@ -16,7 +16,7 @@
         @foreach ($rows as $row)
         <tr>
             @foreach ($params as $param)
-            <td> {{ $row[$param] }} </td>
+            <td class="p-1"> {{ $row[$param] }} </td>
             @endforeach
         </tr>
         @endforeach

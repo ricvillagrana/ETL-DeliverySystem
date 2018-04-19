@@ -30,7 +30,7 @@ class VehiculoDiaController extends Controller
             'KM recorridos al final'
         ];
         $data['params'] = [
-            'id_vehiculo_dia',
+            'id',
             'nombre_trabajador',
             'fecha_dia',
             'gas_inicial',
@@ -42,7 +42,7 @@ class VehiculoDiaController extends Controller
             'gas_consumida',
             'km_recorridos'
         ];
-        $data['rows'] = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'vehiculodia')->first()->url), true);
+        $data['rows'] = \App\Sqlsrv\VehiculoDia::all();
         return view('panel.table', $data);
     }
 

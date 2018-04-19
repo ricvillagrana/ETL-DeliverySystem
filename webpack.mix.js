@@ -13,6 +13,7 @@ let mix = require('laravel-mix');
 
 mix.js([
     'resources/assets/js/app.js',
+    'resources/assets/js/editable.js',
     'node_modules/chart.js/src/chart.js',
     'node_modules/jquery/src/jquery.js',
     'node_modules/sweetalert2/dist/sweetalert2.all.min.js',

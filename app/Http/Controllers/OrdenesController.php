@@ -18,9 +18,7 @@ class OrdenesController extends Controller
         $data['tableName'] = "Órdenes";
         $data['columns'] = [
             'Número de orden',
-            'Nombre del cliente', 
-            'Prioridad (1-5)',
-            'Cancelada',
+            'Nombre del cliente',
             'Subtotal',
             'IVA',
             'Total',
@@ -28,17 +26,15 @@ class OrdenesController extends Controller
             'Fecha'
         ];
         $data['params'] = [
-            'id_orden',
+            'id',
             'nombre_cliente',
-            'prioridad',
-            'cancelada',
             'subtotal',
             'iva',
             'total',
             'tipo_pago',
-            'creado_en'
+            'fecha'
         ];
-        $data['rows'] = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'ordenes')->first()->url), true);
+        $data['rows'] = \App\Sqlsrv\Ordenes::all();
         return view('panel.table', $data);
     }
 

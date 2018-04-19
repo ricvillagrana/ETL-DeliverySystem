@@ -34,57 +34,32 @@ Dashboard
         </ul>
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                <span><i class="fa fa-user-o"></i> Data Ware House</span>
+                <span><i class="fa fa-user-o"></i> DataWareHouse</span>
             </h6>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link" href="/dwh/envios"><i class="fa fa-truck"></i> Envíos</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/dwh/vehiculo-dia"><i class="fa fa-cube"></i> Vehiculos día</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/dwh/envio-vehiculo-dia"><i class="fa fa-cubes"></i> Envíos vehiculo día</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="/dwh/carga-gas"><i class="fa fa-filter"></i> Carga gas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/dwh/conductores"><i class="fa fa-users"></i> Conductores</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/dwh/devoluciones"><i class="fa fa-undo"></i> Devoluciones</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/dwh/envios"><i class="fa fa-truck"></i> Envíos</a>
+                </li>
+                {{-- <li class="nav-item">
+                    <a class="nav-link" href="/dwh/envio-vehiculo-dia"><i class="fa fa-cubes"></i> Envíos vehiculo día</a>
+                </li> --}}
+                <li class="nav-item">
                     <a class="nav-link" href="/dwh/ordenes"><i class="fa fa-list-ul"></i> Órdenes</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/dwh/conductores"><i class="fa fa-users"></i> Conductores</a>
+                    <a class="nav-link" href="/dwh/vehiculo-dia"><i class="fa fa-cube"></i> Vehiculos día</a>
                 </li>
-            </ul>
-        </h6>
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                <span><i class="fa fa-user-o"></i> Fuentes de datos (APIs)</span>
-            </h6>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" href="/fuentes-datos/envios"><i class="fa fa-truck"></i> Envíos</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/fuentes-datos/vehiculo-dia"><i class="fa fa-cube"></i> Vehiculos día</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/fuentes-datos/envio-vehiculo-dia"><i class="fa fa-cubes"></i> Envíos vehiculo día</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/fuentes-datos/carga-gas"><i class="fa fa-filter"></i> Carga gas</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/fuentes-datos/devoluciones"><i class="fa fa-undo"></i> Devoluciones</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/fuentes-datos/ordenes"><i class="fa fa-list-ul"></i> Órdenes</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/fuentes-datos/conductores"><i class="fa fa-users"></i> Conductores</a>
+                <li class="nav-item p-3">
+                    <a class="btn btn-outline-success mx-auto" target="_blank" href="/generateXLS"><i class="fa fa-download"></i> Descargar XLS</a>
                 </li>
             </ul>
         </h6>

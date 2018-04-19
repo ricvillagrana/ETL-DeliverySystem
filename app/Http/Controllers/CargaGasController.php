@@ -18,8 +18,7 @@ class CargaGasController extends Controller
         $data['tableName'] = "Carga Gas";
         $data['columns'] = [
             'Número de carga',
-            'Nombre del empleado', 
-            'Número de vehiculo',
+            'Nombre del empleado',
             'Estación de gas',
             'Cantidad (Litros)',
             'Precio / Litro',
@@ -28,17 +27,16 @@ class CargaGasController extends Controller
             'Folio de factura'
         ];
         $data['params'] = [
-            'id_carga',
+            'id',
             'nombre_trabajador',
-            'id_vehiculo',
             'nombre_estacion',
             'cantidad',
             'precio_litro',
             'total',
-            'fecha_carga',
+            'fecha',
             'folio_factura'
         ];
-        $data['rows'] = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'cargagas')->first()->url), true);
+        $data['rows'] = \App\Sqlsrv\CargaGas::all();
         return view('panel.table', $data);
     }
 

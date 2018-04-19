@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Envio;
+use App\Sqlsrv\Envio;
 use App\SourcesLocal;
 use Illuminate\Http\Request;
 use Illuminate\Http\Schema;
@@ -28,15 +28,15 @@ class EnviosController extends Controller
             'Fecha de creación'
         ];
         $data['params'] = [
-            'id_envio',
+            'id',
             'id_orden',
             'nombre_cliente',
             'estatus',
             'firmado_por',
             'folio_factura',
-            'creado_en'
+            'fecha'
         ];
-        $data['rows'] = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'envios')->first()->url), true);
+        $data['rows'] = \App\Sqlsrv\Envio::all();
         return view('panel.table', $data);
     }
 
