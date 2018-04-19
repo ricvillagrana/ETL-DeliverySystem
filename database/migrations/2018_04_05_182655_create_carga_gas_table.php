@@ -20,6 +20,7 @@ class CreateCargaGasTable extends Migration
             $table->float('cantidad', 12, 3);
             $table->float('precio_litro', 12, 3);
             $table->float('total', 12, 3);
+            $table->string('folio_factura')->nullable(true);
             $table->datetime('fecha');
             $table->timestamps();
             $table->integer('etl');

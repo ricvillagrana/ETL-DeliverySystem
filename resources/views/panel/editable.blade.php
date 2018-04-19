@@ -38,11 +38,27 @@
 @endsection
 @section('dashboard-content')
 <div id="check">
+    @if($total_errors == 0)
+    <div class="card mb-4 box-shadow mx-auto w-50">
+        <div class="card-header">
+            <h4 class="my-0 font-weight-normal">Proceso Finalizado</h4>
+        </div>
+        <div class="card-body">
+            <div class="my-2">Felicitaciones, terminaste el proceso ETL, ahora puedes ir al Dashboard.</div>
+            <a href="/"><button class="btn btn-success w-100 py-2"><h5>Dashboard</h5></button></a>
+        </div>
+    </div>
+    @else
     <h3> Lista de correcciones </h3>
     <div class="alert alert-info" role="alert">
         <h4>Atención</h4>
         <ul>
-            <li>Los campos con fondo amarillo son los modificados de manera automática.</li>
+            <li>Los campos con fondo distinto son los que puedes modificar.</li>
+            <ul>
+                <li>Algunos de ellos fueron (o pueden ser) modificados de manera automática y se marcaron en azul.</li>
+                <li>Algunos no pudieron ser calculados para auto-corrección, así que fueron marcados en amarillo.</li>
+                <li>Los colores no cambiarán para que tengas claro cuáles son (o eran en caso de haberse modificado) los errores y cuáles las auto-correcciones.</li>
+            </ul>
             <li>Puedes acceder a la información de cambios de los campos haciendo click en ellos.</li>
             <li>Al hacer click en las "cabeceras" podrás editar todos los campos (Sólo los editables).</li>
             <li>Los botones de la columna Acción son cambios reflejados directamente en el DataWareHouse, ten mucho cuidado.</li>
@@ -89,16 +105,20 @@
                     table="{{ $key }}"
                     field="{{ $index }}"
                     row_id="{{ $id }}"
-                    original="{{ in_array($index, $row['field']) ? $row['original'][array_search($index, $row['field'])] : '' }}" 
+                    @if(in_array($index, $row['field']))
+                    original="{{ $row['original'][array_search($index, $row['field'])] }}" 
                     current="{{ $row[$index] }}" 
-                    suggest="{{ $row[$index] }}"
+                    suggest="{{ $row['auto_fix'][array_search($index, $row['field'])] }}"
+                    comment="{{ $row['comment'][array_search($index, $row['field'])] }}"
                     {{ in_array($index, $row['field']) ? 'general_id='.$key.'-'.$index : '' }}
-                    class="{{ in_array($index, $row['field']) ? 'bg-warning cursor-pointer' : '' }}"
+                    class="bg-info cursor-pointer {{ ($row['auto_fix'][array_search($row['field'], array_keys($row['auto_fix']))] == "" && in_array($index, $row['field'])) ? 'bg-warning' : '' }}"
+                    class="{{ $row['solved'] ? 'bg-warning cursor-pointer' : '' }}"
+                    @endif
                     > {{ $row[$index] }} </td>
                     @endforeach
                     <td width="10px">
-                        <button  @click="send_dwh" row="{{ $key.'-'.$id }}" class="btn btn-success px-4"><i row="{{ $key.'-'.$id }}" class="fa fa-download"></i></button>
-                        <button  @click="delete_dwh" row="{{ $key.'-'.$id }}" class="btn btn-danger px-4"><i row="{{ $key.'-'.$id }}" class="fa fa-times"></i></button>
+                        <button @click="send_dwh" able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" id="{{ 'btn-'.$key.'-'.$id }}" row="{{ $key.'-'.$id }}" class="btn btn-success px-4"><i row="{{ $key.'-'.$id }}" id="{{ 'icon-'.$key.'-'.$id }}" able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" class="fa fa-download"></i></button>
+                        <button @click="delete_dwh" row="{{ $key.'-'.$id }}" class="btn btn-danger px-4"><i row="{{ $key.'-'.$id }}" class="fa fa-times"></i></button>
                     </td>
                 </tr>
                 @endforeach
@@ -115,6 +135,7 @@
                         <p class="card-text text-custom"> 
                             Valor que contenía: @{{ original }} <br />
                             Valor sugerido: @{{ suggest }} <br />
+                            Comentario: @{{ comment }} <br />
                             Valor actual: <input id="new_value" class="form-control w-50 mx-auto" :type="input_type" v-model:value="current"><br />
                         </p>
                         <button id="close-etl-btn" @click="close_card()" class="mt-3 btn btn-outline-danger"><i class="fa fa-times"></i> Cancelar</button>
@@ -138,339 +159,11 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 @endsection
 @section('additional-js')
 <script>
-    let app = new Vue({
-        el: '#check',
-        data: {
-            original: '',
-            current: '',
-            suggest: '',
-            table: '',
-            field: '',
-            row_id: '',
-            id: '',
-            input_type: 'text',
-            current_field: null,
-            
-            // Genearl
-            general_table_name: '',
-            general_current: '',
-            general_field: '',
-            general_input_type: '',
-        },
-        methods: {
-            edit_all: function (event) {
-                document.getElementById('general_new_value').focus()
-                this.general_current = ''
-                this.general_table_name = event.target.getAttribute('table')
-                this.general_field = event.target.getAttribute('field')
-                if(this.general_field.includes('fecha') || this.general_field.includes('creado')){
-                    this.general_input_type = 'date'
-                }else if(this.general_field.includes('hora')){
-                    this.general_input_type = 'time'
-                }else {
-                    this.general_input_type = 'text'
-                }
-                
-                this.show_bg()
-                this.show_general()
-            },
-            save_all: function () {
-                this.loading()
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.post({
-                    url: '{{ URL::to("/etl/check/change_all") }}', 
-                    type: 'POST',
-                    data: {
-                        'table': app.general_table_name,
-                        'field': app.general_field,
-                        'data': app.general_current
-                    },
-                    success: (result) => {
-                        $("td[general_id='" + this.general_table_name + "-" + this.general_field +"']").html(this.general_current)
-                        swal({
-                            title: 'Éxito...',
-                            text: 'EL campo fue modificado y ahora todos contienen: ' + this.general_current,
-                            type: 'success'
-                        })
-                    },
-                    error: (error) => {
-                        swal({
-                            title: 'Algo salió mal',
-                            text: 'Error: '+jQuery.parseJSON(error.responseText).message,
-                            type: 'error',
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        })
-                    }
-                });
-                this.close_card()
-            },
-            save: function () {
-                this.loading()
-                this.close_card()
-                // Allows sending AJAX queries to Laravel
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.post({
-                    url: '{{ URL::to("/etl/check/change") }}', 
-                    type: 'POST',
-                    data: {
-                        'table': this.table,
-                        'field': this.field,
-                        'data': this.current,
-                        'id': this.row_id,
-                    },
-                    success: (result) => {
-                        this.current_field.setAttribute('current', this.current)
-                        this.current_field.innerHTML = this.current
-                        swal({
-                            title: 'Éxito...',
-                            text: 'EL campo fue modificado',
-                            type: 'success'
-                        })
-                    },
-                    error: (error) => {
-                        console.log(error)
-                        swal({
-                            title: 'Algo salió mal',
-                            text: 'Error: '+jQuery.parseJSON(error.responseText).message,
-                            type: 'error'
-                        })
-                    }
-                });
-            },
-            show_actions: function (event) {
-                document.getElementById('new_value').focus()
-                this.current_field = event.target;
-                this.original = this.current_field.getAttribute('original')
-                if(this.original == '' || this.original == null) this.original = 'NULL'
-                this.current = this.current_field.getAttribute('current')
-                this.suggest = this.current_field.getAttribute('suggest')
-                this.table = this.current_field.getAttribute('table')
-                this.field = this.current_field.getAttribute('field')
-                this.row_id = this.current_field.getAttribute('row_id')
-                if(this.field.includes('fecha') || this.field.includes('creado')){
-                    this.input_type = 'date'
-                }else if(this.field.includes('hora')){
-                    this.input_type = 'time'
-                }else {
-                    this.input_type = 'text'
-                }
-                this.show_bg()
-                this.show_card()
-            },
-            close_card: function () {
-                this.hide_bg()
-                this.hide_card()
-                this.hide_general()
-            },
-            delete_dwh: function(event) {
-                id          = '#' + event.target.getAttribute('row')
-                data        = event.target.getAttribute('row').split('-')
-                this.table  = data[0]
-                this.row_id = data[1]
-                
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                swal({
-                    title: 'Eliminarás un registro',
-                    text: "No podrás recuperarlo, ¿deseas continuar?",
-                    type: 'warning',
-                    showCancelButton: true,
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, eliminar'
-                }).then((result) => {
-                    if (result.value) {
-                        this.loading()
-                        $.post({
-                            url: '{{ URL::to('/etl/check/delete') }}', 
-                            type: 'POST',
-                            data: {
-                                'table': this.table,
-                                'id': this.row_id,
-                            },
-                            success: (result) => {
-                                $(id).addClass('animated zoomOutLeft')
-                                setTimeout(() => {
-                                    $(id).addClass('hidden')
-                                },800)
-                                setTimeout(() => {
-                                    swal({
-                                        title: 'Se eliminó',
-                                        text: 'EL campo no se enviará al DataWareHouse, ni aparecerá en la lista de errores.',
-                                        type: 'success'
-                                    })
-                                },800)
-                            },
-                            error: (error) => {
-                                swal({
-                                    title: 'Algo salió mal',
-                                    text: 'Error: '+jQuery.parseJSON(error.responseText).message,
-                                    type: 'error'
-                                })
-                            }
-                        });
-                    }
-                })
-                
-            },
-            send_dwh: function (event) {
-                id          = '#' + event.target.getAttribute('row')
-                data        = event.target.getAttribute('row').split('-')
-                this.table  = data[0]
-                this.row_id = data[1]
-                
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                swal({
-                    title: 'Enviarás un registro al DataWareHosue',
-                    text: "Ten cuidado con lo que haces, ¿deseas continuar?",
-                    type: 'warning',
-                    showCancelButton: true,
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, enviar'
-                }).then((result) => {
-                    if (result.value) {
-                        this.loading()
-                        $.post({
-                            url: '{{ URL::to('/etl/check/send') }}', 
-                            type: 'POST',
-                            data: {
-                                'table': this.table,
-                                'id': this.row_id,
-                            },
-                            success: (result) => {
-                                $(id).addClass('animated zoomOutRight')
-                                setTimeout(() => {
-                                    $(id).addClass('hidden')
-                                },800)
-                                setTimeout(() => {
-                                    swal({
-                                        title: 'Se envió',
-                                        text: 'EL campo se envió al DataWareHouse, podrás encontrarlo ahí.',
-                                        type: 'success'
-                                    })
-                                },800)
-                            },
-                            error: (error) => {
-                                swal({
-                                    title: 'Algo salió mal',
-                                    text: 'Error: '+jQuery.parseJSON(error.responseText).message,
-                                    type: 'error'
-                                })
-                            }
-                        });
-                    }
-                })
-            },
-            finish: () => {
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                swal({
-                    title: 'Terminar',
-                    text: "Siempre es recomendable una segunda revisión, ya que una vez enviados, no hay vuelta atrás, ¿deseas continuar?",
-                    type: 'warning',
-                    showCancelButton: true,
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#1e7e34',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, enviar'
-                }).then((result) => {
-                    if (result.value) {
-                        app.loading()
-                        $.post({
-                            url: '{{ URL::to('/etl/check/send-all') }}', 
-                            type: 'POST',
-                            data: {
-                                'table': this.table,
-                                'id': this.row_id,
-                            },
-                            success: (result) => {
-                                setTimeout(() => {
-                                    swal({
-                                        title: 'Se enviaron los registros',
-                                        text: 'Los registros se enviaron al DataWareHouse, podrás encontrarlos ahí.',
-                                        type: 'success'
-                                    }).then((result) => {
-                                        if(result.value){
-                                            window.location = '{{ URL::to("/etl/corrections") }}'
-                                        }
-                                    })
-                                },800)
-                            },
-                            error: (error) => {
-                                swal({
-                                    title: 'Algo salió mal',
-                                    html: 'Error: <code>'+jQuery.parseJSON(error.responseText).message+'</code>',
-                                    type: 'error'
-                                })
-                            }
-                        });
-                    }
-                })
-            },
-            
-            // Misc methods
-            show_bg: () => {
-                $('#fg-wall').css('top', '0%');
-            },
-            hide_bg: () => {
-                $('#fg-wall').css('top', '100%');
-            },
-            show_card: () => {
-                this.current = ''
-                $('#card-changes').html()
-                $('#card-changes').css('top', '0');
-                $('#card-changes').css('opacity', "1");
-            },
-            hide_card: () => {
-                $('#card-changes').css('top', '100%');
-                $('#card-changes').css('opacity', "0");
-            },
-            show_general: () => {
-                $('#card-general').css('top', '0');
-                $('#card-general').css('opacity', "1");
-            },
-            hide_general: () => {
-                $('#card-general').css('top', '100%');
-                $('#card-general').css('opacity', "0");
-            },
-            loading: () => {
-                swal({
-                    title: 'Ejecutando...',
-                    onOpen: () => {
-                        swal.showLoading()
-                    }
-                })
-            }
-        }
-    }); 
-</script>
-<script>
-    
     @foreach($tables as $key => $table)
     $("#freeze-{{ $key }}").freezeHeader({offset : '40px'});
     @endforeach

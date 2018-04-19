@@ -51,7 +51,7 @@
         },
         methods: {
             correct: function(){
-                window.location = '{{ URL::to("/etl/corrections") }}';
+                window.location = '{{ URL::to("/etl/check") }}';
             },
             auto_correct: function(){
                 swal({
@@ -71,13 +71,12 @@
                         $.ajaxSetup({async:true})
                         this.loading()
                         $.ajax({
-                            url: '{{ URL::to("/etl/do/auto-fix") }}',
+                            url: '/etl/do/auto-fix',
                             success: (result) => {
                                 swal({
                                     title: 'Listo',
                                     text: 'Ahora sólo debes aceptar los cambions.',
                                     type: 'success',
-                                    showCancelButton: true,
                                     confirmButtonColor: '#3085d6',
                                     confirmButtonText: 'Revisar',
                                     confirmButtonClass: 'btn btn-success',
@@ -85,7 +84,7 @@
                                     showCancelButton: false,
                                 }).then((result) => {
                                     if (result.value) {
-                                        window.location = '{{ URL::to("/etl/check") }}';
+                                        this.correct()
                                     }
                                 })
                             },

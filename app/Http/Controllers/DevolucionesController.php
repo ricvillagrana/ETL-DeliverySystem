@@ -19,20 +19,18 @@ class DevolucionesController extends Controller
         $data['columns'] = [
             'Número de devolución',
             'Nombre del cliente',
-            'Número de producto', 
             'Número de orden',
             'Razón',
             'Cantidad'
         ];
         $data['params'] = [
-            'id_devolucion',
+            'id',
             'nombre_cliente',
-            'id_producto',
             'id_orden',
             'razon',
             'cantidad'
         ];
-        $data['rows'] = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'devoluciones')->first()->url), true);
+        $data['rows'] = \App\Sqlsrv\Devoluciones::all();
         return view('panel.table', $data);
     }
 

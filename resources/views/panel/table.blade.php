@@ -16,7 +16,7 @@
         @foreach ($rows as $row)
         <tr>
             @foreach ($params as $param)
-            <td> {{ $row[$param] }} </td>
+            <td class="p-1"> {{ $row[$param] }} </td>
             @endforeach
         </tr>
         @endforeach

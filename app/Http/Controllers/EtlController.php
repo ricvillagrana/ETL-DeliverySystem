@@ -101,8 +101,8 @@ class EtlController extends Controller
         
         // Getting data from Carga Gas
         $carga_gas['table_name'] = "Carga Gas";
-        $carga_gas['headers'] = ['Nombre del trabajador', 'Nombre de la estación', 'Cantidad (Litros)', 'Precio ($)', 'Total ($)', 'Fecha'];
-        $carga_gas['indexes'] = ['nombre_trabajador', 'nombre_estacion', 'cantidad', 'precio_litro', 'total', 'fecha'];
+        $carga_gas['headers'] = ['Nombre del trabajador', 'Nombre de la estación', 'Cantidad (Litros)', 'Precio ($)', 'Total ($)', 'Folio factura', 'Fecha'];
+        $carga_gas['indexes'] = ['nombre_trabajador', 'nombre_estacion', 'cantidad', 'precio_litro', 'total', 'folio_factura', 'fecha'];
         $rows = json_decode(json_encode(CargaGas::solved($param)),true);
         $carga_gas['data'] = [];
         foreach($rows as $row){
@@ -167,32 +167,59 @@ class EtlController extends Controller
             }
         }
         $data['tables']['vehiculo_dias'] = $vehiculo_dias;
+
+        // Getting data from Órdenes
+        $ordenes['table_name'] = "Órdenes";
+        $ordenes['headers'] = ['Nombre del cliente', 'Fecha', 'Subtotal ($)', 'IVA ($)', 'Total ($)', 'Tipo de pago'];
+        $ordenes['indexes'] = ['nombre_cliente', 'fecha', 'subtotal', 'iva', 'total', 'tipo_pago'];
+        $rows = json_decode(json_encode(Ordenes::solved($param)),true);
+        $ordenes['data'] = [];
+        foreach($rows as $row){
+            if(!isset($ordenes['data'][$row['id_error']])){
+                $ordenes['data'][$row['id_error']]= $row;
+                $ordenes['data'][$row['id_error']]['field'] = [$row['field']];
+                $ordenes['data'][$row['id_error']]['comment'] = [$row['comment']];
+                $ordenes['data'][$row['id_error']]['id_error'] = [$row['id_error']];
+                $ordenes['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
+                $ordenes['data'][$row['id_error']]['original'] = [$row['original']];
+            }else{
+                array_push($ordenes['data'][$row['id_error']]['field'], $row['field']);
+                array_push($ordenes['data'][$row['id_error']]['comment'], $row['comment']);
+                array_push($ordenes['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
+                array_push($ordenes['data'][$row['id_error']]['original'], $row['original']);
+            }
+        }
+        $data['tables']['ordenes'] = $ordenes;
+
+        // Getting data from Conductores
+        $empleados['table_name'] = "Empleados";
+        $empleados['headers'] = ['Nombre del cliente', 'Apellido Paterno', 'Apellido Materno', 'Teléfono', 'Correo electrónico', 'RFC', 'Domicilio', 'Municipio', 'Estado', 'Fecha de inicio', 'Fecha de Nacimiento'];
+        $empleados['indexes'] = ['nombre', 'apellido_paterno', 'apellido_materno', 'telefono', 'correo', 'rfc', 'domiciolio', 'municipio', 'estado', 'fecha_inicio', 'fecha_nac'];
+        $rows = json_decode(json_encode(Ordenes::solved($param)),true);
+        $empleados['data'] = [];
+        foreach($rows as $row){
+            if(!isset($empleados['data'][$row['id_error']])){
+                $empleados['data'][$row['id_error']]= $row;
+                $empleados['data'][$row['id_error']]['field'] = [$row['field']];
+                $empleados['data'][$row['id_error']]['comment'] = [$row['comment']];
+                $empleados['data'][$row['id_error']]['id_error'] = [$row['id_error']];
+                $empleados['data'][$row['id_error']]['auto_fix'] = [$row['auto_fix']];
+                $empleados['data'][$row['id_error']]['original'] = [$row['original']];
+            }else{
+                array_push($empleados['data'][$row['id_error']]['field'], $row['field']);
+                array_push($empleados['data'][$row['id_error']]['comment'], $row['comment']);
+                array_push($empleados['data'][$row['id_error']]['auto_fix'], $row['auto_fix']);
+                array_push($empleados['data'][$row['id_error']]['original'], $row['original']);
+            }
+        }
+        $data['tables']['empleados'] = $empleados;
+
         // Debug
         // return json_encode($data);
         
+        $data['total_errors'] = Error::all()->count();
+
         return view('panel.editable', $data);
     }
     
-    public function check2 () 
-    {
-        if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
-        // Get errors
-        $errors['vehiculo_dias']    = Error::where('table', 'vehiculo_dias')->get();
-        $errors['carga_gas']        = Error::where('table', 'caga_gas')->get();
-        $errors['devoluciones']     = Error::where('table', 'devoluciones')->get();
-        
-        $traitment['vehiculo_dias'] = [];
-        foreach($errors['vehiculo_dias'] as $error){
-            if(!isset($traitment['vehiculo_dias'][$error->id_error]))
-            $traitment['vehiculo_dias'][$error->id_error] = \App\VehiculoDia::find($error->id_error);
-            if(is_array($traitment['vehiculo_dias'][$error->id_error]['field'])){
-                $traitment['vehiculo_dias'][$error->id_error]['field']   = array_merge($traitment['vehiculo_dias'][$error->id_error]['field'], [$error->field]);
-                $traitment['vehiculo_dias'][$error->id_error]['comment'] = array_merge($traitment['vehiculo_dias'][$error->id_error]['comment'], [$error->comment]);
-            }else{
-                $traitment['vehiculo_dias'][$error->id_error]['field']      = [$error->field];
-                $traitment['vehiculo_dias'][$error->id_error]['comment']    = [$error->comment];
-            }
-        }
-        return json_encode($traitment);
-    }
 }
