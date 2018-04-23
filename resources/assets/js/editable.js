@@ -126,7 +126,18 @@ let app = new Vue({
                 this.input_type = 'date'
             }else if(this.field.includes('hora')){
                 this.input_type = 'time'
-            }else {
+            }else if(this.field.includes('folio') 
+                    || this.field.includes('numero') 
+                    || this.field.includes('gas')
+                    || this.field.includes('km')
+                    || this.field.includes('total')
+                    || this.field.includes('subtotal')
+                    || this.field.includes('iva')
+                    || this.field.includes('cantidad')
+                    || this.field.includes('precio')
+                ){
+                this.input_type = 'number'
+            }else{
                 this.input_type = 'text'
             }
             this.show_bg()
@@ -274,11 +285,7 @@ let app = new Vue({
                     app.loading()
                     $.post({
                         url: '/etl/check/send-all', 
-                        type: 'POST',
-                        data: {
-                            'table': this.table,
-                            'id': this.row_id,
-                        },
+                        type: 'GET',
                         success: (result) => {
                             setTimeout(() => {
                                 swal({

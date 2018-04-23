@@ -128,7 +128,7 @@ Route::post('/etl/check/send', function(Request $request){
     DB::select("DELETE FROM errors WHERE id_error = $id AND `table` = '$table'");
     
 });
-Route::post('/etl/check/send-all', function(Request $request){
+Route::get('/etl/check/send-all', function(){
     
     $carga_gas = CargaGas::solvedClean();
     foreach($carga_gas as $row){
@@ -227,7 +227,7 @@ Route::get('/etl/do/carga_gas', function(){
     $carga_gas = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'cargagas')->first()->url));
     foreach($carga_gas as $carga):
         $error = false;
-        if(preg_match('/[0-9]/', $carga->nombre_trabajador)):
+        if(Misc::contains_number($carga->nombre_trabajador)):
             $error = true;
             Error::create([
                 'table'     => 'carga_gas',
@@ -236,7 +236,7 @@ Route::get('/etl/do/carga_gas', function(){
                 'comment'   => 'Un nombre no puede contener números.',
                 'original'  => $carga->nombre_trabajador,
                 'etl'       => session('id_etl'),
-                'auto_fix'  => str_replace('/[0-9]/', '', $carga->nombre_trabajador)
+                'auto_fix'  => Misc::delete_numbers($carga->nombre_trabajador)
             ]);
         endif;
         if((float)$carga->cantidad < 0):
@@ -322,7 +322,7 @@ Route::get('/etl/do/envios', function(){
     $envios = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'envios')->first()->url));
     foreach($envios as $envio):
         $error = false;
-        if(preg_match('/[0-9]/', $envio->firmado_por)):
+        if(Misc::contains_number($envio->firmado_por)):
             $error = true;
             Error::create([
                 'table'     => 'envios',
@@ -331,10 +331,10 @@ Route::get('/etl/do/envios', function(){
                 'comment'   => 'Un nombre no puede contener números.',
                 'original'  => $envio->firmado_por,
                 'etl'       => session('id_etl'),
-                'auto_fix'  => str_replace('/[0-9]/', '', $envio->firmado_por)
+                'auto_fix'  => Misc::delete_numbers($envio->firmado_por)
             ]);
         endif;
-        if(preg_match('/[0-9]/', $envio->nombre_cliente)):
+        if(Misc::contains_number($envio->nombre_cliente)):
             $error = true;
             Error::create([
                 'table'     => 'envios',
@@ -343,7 +343,7 @@ Route::get('/etl/do/envios', function(){
                 'comment'   => 'Un nombre no puede contener números.',
                 'original'  => $envio->nombre_cliente,
                 'etl'       => session('id_etl'),
-                'auto_fix'  => str_replace('/[0-9]/', '', $envio->nombre_cliente)
+                'auto_fix'  => str_replaceMisc::delete_numbers($envio->nombre_cliente)
             ]);
         endif;
         if($envio->folio_factura == null || $envio->folio_factura == "''"):
@@ -550,7 +550,7 @@ Route::get('/etl/do/devoluciones', function(){
     $devoluciones = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'devoluciones'      )->first()->url));
     foreach($devoluciones as $devolucion):
         $error = false;
-        if(preg_match('/[0-9]/', $devolucion->nombre_cliente)):
+        if(Misc::contains_number($devolucion->nombre_cliente)):
             $error = true;
             Error::create([
                 'table'     => 'devoluciones',
@@ -559,7 +559,7 @@ Route::get('/etl/do/devoluciones', function(){
                 'comment'   => 'Un nombre no puede contener números.',
                 'original'  => $devolucion->nombre_cliente,
                 'etl'       => session('id_etl'),
-                'auto_fix'  => str_replace('/[0-9]/', '', $devolucion->nombre_cliente)
+                'auto_fix'  => Misc::delete_numbers($devolucion->nombre_cliente)
             ]);
         endif;
         if($devolucion->cantidad < 0):
@@ -595,7 +595,7 @@ Route::get('/etl/do/ordenes', function(){
     $ordenes = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'ordenes')->first()->url));
     foreach($ordenes as $orden):
         $error = false;
-        if(preg_match('/[0-9]/', $orden->nombre_cliente)):
+        if(Misc::contains_number($orden->nombre_cliente)):
             $error = true;
             Error::create([
                 'table'     => 'ordenes',
@@ -604,7 +604,7 @@ Route::get('/etl/do/ordenes', function(){
                 'comment'   => 'Un nombre no puede contener números.',
                 'original'  => $orden->nombre_cliente,
                 'etl'       => session('id_etl'),
-                'auto_fix'  => str_replace('/[0-9]/', '', $orden->nombre_cliente)
+                'auto_fix'  => Misc::delete_numbers($orden->nombre_cliente)
             ]);
         endif;
         if(strtotime($orden->creado_en) > time() ):
@@ -666,19 +666,19 @@ Route::get('/etl/do/conductores', function(){
     $conductores = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'conductores')->first()->url));
     foreach($conductores as $conductor):
         $error = false;
-        if(preg_match('/[0-9]/', $conductor->nombre)):
+        if(Misc::contains_number($conductor->nombre)):
             $error = true;
             Error::create([
                 'table'     => 'empleados',
                 'id_error'  => $conductor->id_conductor,
                 'field'     => 'nombre',
                 'comment'   => 'Un nombre no puede contener números.',
-                'original'  => $conductor->firmado_por,
+                'original'  => $conductor->nombre,
                 'etl'       => session('id_etl'),
-                'auto_fix'  => str_replace('/[0-9]/', '', $conductor->nombre)
+                'auto_fix'  => Misc::delete_numbers($conductor->nombre)
             ]);
         endif;
-        if(preg_match('/[0-9]/', $conductor->apellido)):
+        if(Misc::contains_number($conductor->apellido)):
             $error = true;
             Error::create([
                 'table'     => 'empleados',
@@ -687,7 +687,7 @@ Route::get('/etl/do/conductores', function(){
                 'comment'   => 'Un apellido no puede contener números.',
                 'original'  => $conductor->apellido,
                 'etl'       => session('id_etl'),
-                'auto_fix'  => str_replace('/[0-9]/', '', $conductor->apellido)
+                'auto_fix'  => Misc::delete_numbers($conductor->apellido)
             ]);
         endif;
         if(strlen($conductor->rfc) != 13):

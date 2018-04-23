@@ -76436,6 +76436,8 @@ var app = new Vue({
                 this.input_type = 'date';
             } else if (this.field.includes('hora')) {
                 this.input_type = 'time';
+            } else if (this.field.includes('folio') || this.field.includes('numero') || this.field.includes('gas') || this.field.includes('km') || this.field.includes('total') || this.field.includes('subtotal') || this.field.includes('iva') || this.field.includes('cantidad') || this.field.includes('precio')) {
+                this.input_type = 'number';
             } else {
                 this.input_type = 'text';
             }
@@ -76587,11 +76589,7 @@ var app = new Vue({
                     app.loading();
                     $.post({
                         url: '/etl/check/send-all',
-                        type: 'POST',
-                        data: {
-                            'table': _this5.table,
-                            'id': _this5.row_id
-                        },
+                        type: 'GET',
                         success: function success(result) {
                             setTimeout(function () {
                                 swal({

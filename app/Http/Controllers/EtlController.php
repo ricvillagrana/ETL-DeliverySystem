@@ -194,8 +194,8 @@ class EtlController extends Controller
         // Getting data from Conductores
         $empleados['table_name'] = "Empleados";
         $empleados['headers'] = ['Nombre del cliente', 'Apellido Paterno', 'Apellido Materno', 'Teléfono', 'Correo electrónico', 'RFC', 'Domicilio', 'Municipio', 'Estado', 'Fecha de inicio', 'Fecha de Nacimiento'];
-        $empleados['indexes'] = ['nombre', 'apellido_paterno', 'apellido_materno', 'telefono', 'correo', 'rfc', 'domiciolio', 'municipio', 'estado', 'fecha_inicio', 'fecha_nac'];
-        $rows = json_decode(json_encode(Ordenes::solved($param)),true);
+        $empleados['indexes'] = ['nombre', 'apellido_paterno', 'apellido_materno', 'telefono', 'correo', 'rfc', 'domicilio', 'municipio', 'estado', 'fecha_inicio', 'fecha_nac'];
+        $rows = json_decode(json_encode(Empleado::solved($param)),true);
         $empleados['data'] = [];
         foreach($rows as $row){
             if(!isset($empleados['data'][$row['id_error']])){

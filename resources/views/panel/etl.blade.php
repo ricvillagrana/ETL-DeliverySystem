@@ -80,7 +80,7 @@
                         @{{ message }} 
                     </p>
                     <div class="progress mb-4">
-                        <div id="etl-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                        <div id="etl-progress-bar" class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
                     </div>
                     <a href="/etl/errors" id="next-etl-btn" style="display:none;" class="btn btn-success w-50 mx-auto">Ver errores</a>
                     <button id="close-etl-btn" @click="etl_finish()" style="display:none;" class="mt-3 btn btn-outline-secondary w-25 mx-auto"> Cerrar</button>
