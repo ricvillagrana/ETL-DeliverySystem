@@ -32,7 +32,7 @@ class UsersController extends Controller
     */
     public function login () { 
         if(session('user') != null)
-        return redirect('/dashboard');
+        return redirect('/etl');
         return view('login');
     }
     /**

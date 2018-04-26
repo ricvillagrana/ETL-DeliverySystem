@@ -32,7 +32,7 @@ class VehiculoDiaController extends Controller
         $data['params'] = [
             'id',
             'nombre_trabajador',
-            'fecha_dia',
+            'fecha',
             'gas_inicial',
             'gas_final',
             'km_inicial',

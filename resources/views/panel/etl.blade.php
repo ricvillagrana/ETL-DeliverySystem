@@ -42,13 +42,13 @@
 @endsection
 @section('dashboard-content')
 <div id="app-etl">
-    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    {{-- <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
         <h1 class="display-4">ETL</h1>
         <p class="lead">El significado de ETL es <em>Extraction</em>, <em>Transform</em> and <em>Load</em>, 
             que traducido es Extracción, Transformación y Carga. <br>
             A continuación harás el proceso de ETL.
         </p>
-    </div>
+    </div> --}}
     <div class="offset-md-3 col-md-6 offset-sm-2 col-sm-8 col-12">
         <div class="card mb-4 box-shadow">
             <div class="card-header">

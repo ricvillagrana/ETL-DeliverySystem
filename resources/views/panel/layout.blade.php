@@ -8,7 +8,7 @@ Dashboard
 @endsection
 @section('content')
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Costurita ETL</a>
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">BI Costurita</a>
     <ul class="navbar-nav px-3">
         <li class="nav-item text-nowrap">
             <a class="nav-link" href="/logout"><i class="fa fa-sign-out"></i> Cerrar sesión</a>
@@ -23,18 +23,22 @@ Dashboard
         </h6>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link" href="/dashboard"><i class="fa fa-home"></i> Dashboard</a>
+                <a class="nav-link" href="/etl"><i class="fa fa-linode"></i> ETL</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/etl"><i class="fa fa-download"></i> ETL</a>
-            </li>
+            @if(\App\Error::where('solved', '!=', '1')->get()->count() != 0)
             <li class="nav-item">
                 <a class="nav-link" href="/etl/errors"><i class="fa fa-exclamation-triangle"></i> Errores</a>
             </li>
+            @endif
+            @if(\App\Etl::all()->count() != 0 && \App\Error::where('solved', '=', '0')->get()->count() == 0)
+            <li class="nav-item">
+                <a class="nav-link" href="/dashboard"><i class="fa fa-home"></i> Dashboard</a>
+            </li>
+            @endif
         </ul>
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                <span><i class="fa fa-user-o"></i> DataWareHouse</span>
+                <span><i class="fa fa-database"></i> DataWareHouse</span>
             </h6>
             <ul class="nav flex-column">
                 <li class="nav-item">

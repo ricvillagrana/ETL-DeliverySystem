@@ -80,7 +80,7 @@
                     }
                 });
                 swal({
-                    title: 'Hay errores que se corrigieron de manera automática.',
+                    title: 'Hay {{ \App\Error::where("auto_fix", "<>", "")->get()->count() }} errores que se corrigieron de manera automática.',
                     text: "¿Deseas enviarlos al DataWareHouse ahora?",
                     type: 'warning',
                     showCancelButton: true,

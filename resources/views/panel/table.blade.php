@@ -16,7 +16,7 @@
         @foreach ($rows as $row)
         <tr>
             @foreach ($params as $param)
-            <td class="p-1"> {{ $row[$param] }} </td>
+            <td class="p-1"> {{ strpos($param, 'fecha') !== false ? \App\Misc::fancy_date($row[$param]) : $row[$param] }} </td>
             @endforeach
         </tr>
         @endforeach
