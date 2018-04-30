@@ -28,6 +28,7 @@ class CreateEmpleadosTable extends Migration
             $table->date('fecha_nac');
             $table->timestamps();
             $table->integer('etl');
+            $table->boolean('deleted')->default(false);
         });
     }
 

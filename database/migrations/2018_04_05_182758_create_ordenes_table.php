@@ -23,6 +23,7 @@ class CreateOrdenesTable extends Migration
             $table->string('tipo_pago');
             $table->timestamps();
             $table->integer('etl');
+            $table->boolean('deleted')->default(false);
         });
     }
 

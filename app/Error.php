@@ -13,4 +13,14 @@ class Error extends Model
     {
         return Error::where('solved', '=', true)->get();
     }
+    public static function from ($id_user) 
+    {
+        return (\DB::select('SELECT e.* FROM 
+        errors e join etls t 
+            on e.etl = t.id 
+        join users u 
+            on t.id_user = u.id 
+        where u.id = '.$id_user.'
+        AND e.deleted = true ORDER BY id DESC'));
+    }
 }

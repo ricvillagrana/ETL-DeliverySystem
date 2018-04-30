@@ -24,6 +24,7 @@ class CreateCargaGasTable extends Migration
             $table->datetime('fecha');
             $table->timestamps();
             $table->integer('etl');
+            $table->boolean('deleted')->default(false);
         });
     }
 

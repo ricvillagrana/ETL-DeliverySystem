@@ -35,8 +35,29 @@ use Illuminate\Http\Request;
 
 // Navigation
 Route::get('/', 'UsersController@login');
-Route::get('/register', 'UsersController@new');
 Route::get('/dashboard', 'UsersController@dashboard');
+
+// Users
+Route::get('/users', 'UsersController@manage');
+Route::get('/user/{username}', 'UsersController@show');
+Route::get('/register', 'UsersController@new');
+Route::post('/user/delete/', function (Request $request){
+    return \App\User::destroy($request->input('id'));
+});
+
+// Users Privileges
+Route::post('/user/privilege/add', function(Request $request){
+    \DB::table('users_privileges')->insert([
+        'id_user'       => $request->input('id_user'),
+        'id_privilege'  => $request->input('id_privilege')
+    ]);
+});
+Route::post('/user/privilege/remove', function(Request $request){
+    \DB::table('users_privileges')->where([
+        ['id_user',      $request->input('id_user')],
+        ['id_privilege', $request->input('id_privilege')]
+    ])->delete();
+});
 // ETL
 Route::get('/etl', 'EtlController@etl');
 Route::get('/etl/errors', 'EtlController@errors');
@@ -57,7 +78,7 @@ Route::post('/etl/check/change', function(Request $request){
     }
     Error::where('id_error', $id)
             ->where('table', $table)
-            ->update(['solved' => 1]);
+            ->update(['solved' => true]);
     //DB::select('UPDATE errors SET solved = 1 WHERE id_error = '.$id.' AND `table` = '.$table);
     return DB::select("UPDATE $table SET $field = '$data' WHERE id = $id");
 });
@@ -73,8 +94,12 @@ Route::post('/etl/check/change_all', function(Request $request){
         $data = $date->format('H:i:s');
     }
     $res = null;
-    foreach(Error::where('solved', '=', '1')->get() as $error){
+    foreach(Error::where('solved', '=', true)->get() as $error){
         $res = DB::select("UPDATE $table SET $field = '$data' WHERE id = $error->id_error");
+        Error::where([
+            ['table', $table],
+            ['id_error', $error->id_error]
+            ])->update(['solved' => true]);
     }
     return $res;
 });
@@ -82,8 +107,8 @@ Route::post('/etl/check/delete', function(Request $request){
     $table  = $request->input('table');
     $id     = $request->input('id');
     $res = null;
-    DB::select("DELETE FROM errors WHERE id_error = $id AND `table` = '$table'");
-    return DB::select("DELETE FROM $table WHERE id = $id");
+    DB::select("UPDATE errors SET deleted = true WHERE id_error = $id AND `table` = '$table'");
+    return DB::select("UPDATE $table SET deleted = true WHERE id = $id");
 });
 Route::post('/etl/check/send', function(Request $request){
     $table  = $request->input('table');
@@ -92,40 +117,40 @@ Route::post('/etl/check/send', function(Request $request){
     if($table == 'carga_gas'){
         $row = CargaGas::find($id)->toArray();
         Sqlsrv\CargaGas::create($row);
-        CargaGas::find($id)->delete();
+        CargaGas::where('id', $row->id)->update(['deleted' => true]);
     }
     if($table == 'vehiculo_dias'){
         $row = VehiculoDia::find($id)->toArray();
         Sqlsrv\VehiculoDia::create($row);
-        VehiculoDia::find($id)->delete();
+        VehiculoDia::where('id', $row->id)->update(['deleted' => true]);
     }
     if($table == 'envio_vehiculo_dias'){
         $row = EnvioVehiculoDia::find($id)->toArray();
         Sqlsrv\EnvioVehiculoDia::create($row);
-        EnvioVehiculoDia::find($id)->delete();
+        EnvioVehiculoDia::where('id', $row->id)->update(['deleted' => true]);
     }
     if($table == 'envios'){
         $row = Envio::find($id)->toArray();
         Sqlsrv\Envio::create($row);
-        Envio::find($id)->delete();
+        Envio::where('id', $row->id)->update(['deleted' => true]);
     }
     if($table == 'devoluciones'){
         $row = Devoluciones::find($id)->toArray();
         Sqlsrv\Devoluciones::create($row);
-        Devoluciones::find($id)->delete();
+        Devoluciones::where('id', $row->id)->update(['deleted' => true]);
     }
     if($table == 'ordenes'){
         $row = Ordenes::find($id)->toArray();
         Sqlsrv\Ordenes::create($row);
-        Ordenes::find($id)->delete();
+        Ordenes::where('id', $row->id)->update(['deleted' => true]);
     }
     if($table == 'empleados'){
         $row = Empleado::find($id)->toArray();
         Sqlsrv\Empleado::create($row);
-        Empleado::find($id)->delete();
+        Empleado::where('id', $row->id)->update(['deleted' => true]);
     }
 
-    DB::select("DELETE FROM errors WHERE id_error = $id AND `table` = '$table'");
+    DB::select("UPDATE errors SET deleted = true WHERE id_error = $id AND `table` = '$table'");
     
 });
 Route::get('/etl/check/send-all', function(){
@@ -134,45 +159,45 @@ Route::get('/etl/check/send-all', function(){
     foreach($carga_gas as $row){
         if(Sqlsrv\CargaGas::find($row->id) === null)
             Sqlsrv\CargaGas::create((array)$row);
-        CargaGas::destroy($row->id);
+        CargaGas::where('id', $row->id)->update(['deleted' => true]);
     }
     $vehiculo_dias = VehiculoDia::solvedClean();
     foreach($vehiculo_dias as $row){
         if(Sqlsrv\VehiculoDia::find($row->id) === null)
             Sqlsrv\VehiculoDia::create((array)$row);
-        VehiculoDia::destroy($row->id);
+        VehiculoDia::where('id', $row->id)->update(['deleted' => true]);
     }
     $envio_vehiculo_dias = EnvioVehiculoDia::solvedClean();
     foreach($envio_vehiculo_dias as $row){
         if(Sqlsrv\EnvioVehiculoDia::find($row->id) === null)
             Sqlsrv\EnvioVehiculoDia::create((array)$row);
-        EnvioVehiculoDia::destroy($row->id);
+        EnvioVehiculoDia::where('id', $row->id)->update(['deleted' => true]);
     }
     $envios = Envio::solvedClean();
     foreach($envios as $row){
         if(Sqlsrv\Envio::find($row->id) === null)
             Sqlsrv\Envio::create((array)$row);
-        Envio::destroy($row->id);
+        Envio::where('id', $row->id)->update(['deleted' => true]);
     }
     $ordenes = Ordenes::solvedClean();
     foreach($ordenes as $row){
         if(Sqlsrv\Ordenes::find($row->id) === null)
             Sqlsrv\Ordenes::create((array)$row);
-        Ordenes::destroy($row->id);
+        Ordenes::where('id', $row->id)->update(['deleted' => true]);
     }
     $empleados = Empleado::solvedClean();
     foreach($empleados as $row){
         if(Sqlsrv\Empleado::find($row->id) === null)
             Sqlsrv\Empleado::create((array)$row);
-        Empleado::destroy($row->id);
+        Empleado::where('id', $row->id)->update(['deleted' => true]);
     }
     $devoluciones = Devoluciones::solvedClean();
     foreach($devoluciones as $row){
         if(Sqlsrv\Devoluciones::find($row->id) === null)
             Sqlsrv\Devoluciones::create((array)$row);
-        Devoluciones::destroy($row->id);
+        Devoluciones::where('id', $row->id)->update(['deleted' => true]);
     }
-    Error::where('solved', 1)->delete();
+    Error::where('solved', true)->update(['deleted' => true]);
     
 });
 // User

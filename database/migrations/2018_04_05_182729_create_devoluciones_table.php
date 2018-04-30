@@ -22,6 +22,7 @@ class CreateDevolucionesTable extends Migration
             $table->integer('cantidad');
             $table->timestamps();
             $table->integer('etl');
+            $table->boolean('deleted')->default(false);
         });
     }
 

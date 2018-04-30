@@ -5,6 +5,27 @@
 * building robust, powerful web applications using Vue and Laravel.
 */
 
+// ETL reset
+etl_reset = () => {
+    swal({
+        title: 'Ejecutando...',
+        onOpen: () => {
+            swal.showLoading()
+        }
+    })
+    $.ajax({
+        url: '/etl/clean', 
+        success: result => {
+            swal(
+                'ETL reiniciado',
+                'Todos tus movimientos que no estaban fríamente calculados fueron deshechos',
+                'success'
+            )            
+            window.location.href = '/etl';
+        }
+    });
+}
+
 require('./bootstrap');
 $ = require('jquery');
 window.Vue = require('vue');
@@ -18,4 +39,3 @@ window.swal = require('sweetalert2');
 */
 
 Vue.component('example-component', require('./components/ExampleComponent.vue'));
-

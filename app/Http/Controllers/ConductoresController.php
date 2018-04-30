@@ -17,16 +17,10 @@ class ConductoresController extends Controller
         $data['user'] = session('user');
         $data['tableName'] = "Trabajadores";
         $data['columns'] = [
-            'Número de empleado',
+            'Número',
             'Nombre',
-            'Apellido paterno',
-            'Apellido materno',
-            'Teléfono',
-            'Correo Electrónico',
+            'Apellido',
             'RFC',
-            'Domicilio',
-            'Municipio',
-            'Estado',
             'Fecha de inicio',
             'Fecha de nacimiento'                       
         ];
@@ -34,13 +28,7 @@ class ConductoresController extends Controller
             'id',
             'nombre',
             'apellido_paterno',
-            'apellido_materno',
-            'telefono',
-            'correo',
             'rfc',
-            'domicilio',
-            'municipio',
-            'estado',
             'fecha_inicio',
             'fecha_nac'
         ];

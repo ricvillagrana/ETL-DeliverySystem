@@ -29,6 +29,7 @@
         "fix-table-header": "^1.0.3",
         "font-awesome": "^4.7.0",
         "jquery-sticky-table-header": "^1.0.0",
+        "semantic-ui": "^2.3.1",
         "sweetalert2": "^7.18.0",
         "vue-notifyjs": "^0.4.2"
     }

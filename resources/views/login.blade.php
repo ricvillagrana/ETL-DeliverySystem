@@ -63,7 +63,7 @@ Login
             <p class="alert alert-danger">{{ session('error') }} </p>
         @endif
         <label for="inputEmail" class="sr-only">Correo Electrónico</label>
-        <input name="email" type="email" id="inputEmail" class="form-control" placeholder="Correo Electrónico" required="" autofocus="">
+        <input name="email" type="text" id="inputEmail" class="form-control" placeholder="Correo Electrónico" required="" autofocus="">
         <label for="inputPassword" class="sr-only">Contraseña</label>
         <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Contraseña" required="">
         {{ csrf_field() }}

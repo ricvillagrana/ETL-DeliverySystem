@@ -23,8 +23,7 @@ class EtlController extends Controller
     public function etl (Request $request) 
     {
         if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
-        $data['user'] = session('user');
-        return view('panel.etl', $data);
+        return view('panel.etl');
     }
     public function begin () 
     {
@@ -39,7 +38,6 @@ class EtlController extends Controller
     }
     public function errors () {
         if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
-        $data['user'] = session('user');
         $data['errors'] = Error::where('solved', '<>', '1')->get();
         $data['auto_fix'] = Error::where('auto_fix', '<>', '')->count() > 0 ? true : false;
         $data['error_quantity'] = Error::where('solved', '<>', '1')->count();
@@ -75,7 +73,6 @@ class EtlController extends Controller
     {
         $errors = Error::solved();
         if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
-        $data['user'] = session('user');
         // Getting data from Envios
         $envios['table_name'] = "Envios";
         $envios['headers'] = ['Nombre del cliente', 'Persona que firma de recibido', 'Fecha', 'Folio de la factura', 'Estatus de la entrega'];
@@ -147,7 +144,7 @@ class EtlController extends Controller
 
         // Getting data from Vehículo Día
         $vehiculo_dias['table_name'] = "Vehículo Día";
-        $vehiculo_dias['headers'] = ['Nombre del trabajador', 'Gasolina inicial', 'Gasolina final', 'Gasolina consumida', 'Km inicial', 'Km final', 'Km recorridos', 'Hora inicial', 'Hora final', 'fecha'];
+        $vehiculo_dias['headers'] = ['Nombre del trabajador', 'Gasolina inicial', 'Gasolina final', 'Gasolina consumida', 'Km inicial', 'Km final', 'Km recorridos', 'Hora inicial', 'Hora final', 'Fecha'];
         $vehiculo_dias['indexes'] = ['nombre_trabajador', 'gas_inicial', 'gas_final', 'gas_consumida', 'km_inicial', 'km_final', 'km_recorridos', 'hora_inicio', 'hora_fin', 'fecha'];
         $rows = json_decode(json_encode(VehiculoDia::solved($param)),true);
         $vehiculo_dias['data'] = [];
@@ -217,7 +214,7 @@ class EtlController extends Controller
         // Debug
         // return json_encode($data);
         
-        $data['total_errors'] = Error::all()->count();
+        $data['total_errors'] = Error::where('deleted', false)->count();
 
         return view('panel.editable', $data);
     }

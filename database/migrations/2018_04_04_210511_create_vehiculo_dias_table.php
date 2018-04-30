@@ -27,6 +27,7 @@ class CreateVehiculoDiasTable extends Migration
             $table->float('km_recorridos', 12, 3);
             $table->timestamps();
             $table->integer('etl');
+            $table->boolean('deleted')->default(false);
         });
     }
 

@@ -23,6 +23,7 @@ class CreateErrorsTable extends Migration
             $table->text('auto_fix');
             $table->text('original')->nullable();
             $table->integer('etl');
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
         });
     }

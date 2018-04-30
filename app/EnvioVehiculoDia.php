@@ -13,6 +13,7 @@ class EnvioVehiculoDia extends Model
         ON cg.id = er.id_error
         WHERE er.table = 'envio_vehiculo_dias'
         AND er.solved = $solved
+        AND er.deleted = false
         ");
     }
     public static function solvedClean ($solved = true) 

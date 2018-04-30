@@ -23,6 +23,7 @@ class CreateEnviosTable extends Migration
             $table->string('estatus');
             $table->timestamps();
             $table->integer('etl');
+            $table->boolean('deleted')->default(false);
         });
     }
 

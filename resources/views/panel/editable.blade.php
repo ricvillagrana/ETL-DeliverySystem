@@ -44,8 +44,12 @@
             <h4 class="my-0 font-weight-normal">Proceso Finalizado</h4>
         </div>
         <div class="card-body">
-            <div class="my-2">Felicitaciones, terminaste el proceso ETL, ahora puedes ir al Dashboard.</div>
-            <a href="/"><button class="btn btn-success w-100 py-2"><h5>Dashboard</h5></button></a>
+            <div class="my-2">Felicitaciones, terminaste el proceso ETL, ahora puedes ir al {{ !\App\Privilege::checkName(session('user')->id, 'Administrar usuarios') ? 'Inicio' : 'Dashboard' }}.</div>
+            @if(!\App\Privilege::checkName(session('user')->id, 'Administrar usuarios'))
+            <a href="/etl"><button class="btn btn-success w-100 py-2"><h5>Inicio</h5></button></a>
+            @else
+            <a href="/dashboard"><button class="btn btn-success w-100 py-2"><h5>Dashboard</h5></button></a>
+            @endif
         </div>
     </div>
     @else
@@ -106,7 +110,7 @@
                     class="bg-info cursor-pointer {{ ($row['auto_fix'][array_search($row['field'], array_keys($row['auto_fix']))] == "" && in_array($index, $row['field'])) ? 'bg-warning' : '' }}"
                     class="{{ $row['solved'] ? 'bg-warning cursor-pointer' : '' }}"
                     @endif
-                    > {{ strpos($index, 'fecha') !== false ? \App\Misc::fancy_date($row[$index]) : $row[$index] }} </td>
+                    > {{ (strpos($index, 'fecha') !== false || strpos($index, 'created') !== false) ? \App\Misc::fancy_date($row[$index]) : $row[$index] }} </td>
                     @endforeach
                     <td width="auto">
                         <button @click="send_dwh" 
@@ -173,9 +177,12 @@
 </div>
 @endsection
 @section('additional-js')
+<script src="{{ URL::asset('js/editable.js') }}"></script>
 <script>
     @foreach($tables as $key => $table)
-    $("#freeze-{{ $key }}").freezeHeader({offset : '40px'});
+    $("#freeze-{{ $key }}").freezeHeader({
+        offset : '30px',
+    });
     @endforeach
 </script>
 @endsection
