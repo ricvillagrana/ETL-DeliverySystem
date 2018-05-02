@@ -19,7 +19,7 @@ class Privilege extends Model
      * 
      * @return boolean
      */
-     public static function check($id_user, $id_privilege){
+    public static function check($id_user, $id_privilege){
         return \DB::table('users_privileges')->where([
             ['id_user', $id_user],
             ['id_privilege', $id_privilege]

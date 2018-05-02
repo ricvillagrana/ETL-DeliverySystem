@@ -65,7 +65,7 @@ class UsersController extends Controller
         return redirect('/')->with('error', 'Debes iniciar sesión.');
         if(!\App\Privilege::checkName(session('user')->id, 'Administrar usuarios')) return redirect('/');
         $data['users'] = User::all();
-        return view('panel.manage', $data);
+        return view('panel.manage_users', $data);
     }
 
     /**

@@ -45,6 +45,34 @@ Route::post('/user/delete/', function (Request $request){
     return \App\User::destroy($request->input('id'));
 });
 
+// User Roles
+Route::get('/roles', 'RolesController@manage');
+Route::post('/role/add', function(Request $request){
+    return \App\Role::create(['name' => $request->input('name')]);
+});
+Route::post('/role/remove', function(Request $request){
+    return \App\Role::destroy($request->input('id'));
+});
+Route::post('/role/change', function(Request $request){
+    $user = \App\User::find($request->input('id_user'));
+    $user->id_role = $request->input('id_role');
+    $user->save();
+});
+
+// Roles Sections
+Route::post('/role/section/add', function(Request $request){
+    \DB::table('role_sections')->insert([
+        'id_role'       => $request->input('id_role'),
+        'id_section'    => $request->input('id_section')
+    ]);
+});
+Route::post('/role/section/remove', function(Request $request){
+    \DB::table('role_sections')->where([
+        ['id_role',     $request->input('id_role')],
+        ['id_section',  $request->input('id_section')]
+    ])->delete();
+});
+
 // Users Privileges
 Route::post('/user/privilege/add', function(Request $request){
     \DB::table('users_privileges')->insert([
@@ -58,6 +86,7 @@ Route::post('/user/privilege/remove', function(Request $request){
         ['id_privilege', $request->input('id_privilege')]
     ])->delete();
 });
+
 // ETL
 Route::get('/etl', 'EtlController@etl');
 Route::get('/etl/errors', 'EtlController@errors');

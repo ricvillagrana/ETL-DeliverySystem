@@ -34,6 +34,13 @@ class User extends Authenticatable
         return false;
     }
 
+    public static function getRole ($id) {
+        $name = \DB::select('SELECT r.name FROM roles r join users u on u.id_role = r.id WHERE u.id = '.$id);
+        if($name != null)
+            return ($name[0])->name;
+        return "Selecciona un rol";
+    }
+
     /**
      * The attributes that should be hidden for arrays.
      *

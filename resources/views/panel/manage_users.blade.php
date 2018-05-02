@@ -18,6 +18,7 @@
             @foreach(\App\Privilege::all() as $privilege)
             <th>{{ $privilege->name }}</th>
             @endforeach
+            <th>Rol</th>
             <th>Más</th>
         </tr>
     </thead>
@@ -36,6 +37,17 @@
             privilege="{{ \App\Privilege::check($user->id, $privilege->id) ? 'set' : 'unset' }}"
             class="popup center aligned cursor-pointer"><i id="{{ $user->id.'-'.$privilege->id }}" id_user="{{ $user->id }}" id_privilege="{{ $privilege->id }}" class="large {{ \App\Privilege::check($user->id, $privilege->id) ? 'green check' : 'red minus' }} icon"></i></th>
             @endforeach
+            <td>
+                <div class="ui fluid selection dropdown">
+                    <div class="text">{{ \App\User::getRole($user->id) }}</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        @foreach (\App\Role::all() as $role)
+                        <div @click="set_role" id="role-{{ $role->id }}" role_id="{{ $role->id }}" user_id="{{ $user->id }}" class="item">{{ $role->name }}</div>
+                        @endforeach
+                    </div>
+                </div>
+            </td>
             <td>
                 <div class="ui fluid selection dropdown">
                     <div>Opciones</div>
@@ -79,18 +91,19 @@
                         'id_privilege': e.target.getAttribute('id_privilege')
                     },
                     success: result => {
+                        let id = e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')
                         if(e.target.getAttribute('privilege') == 'set'){
                             e.target.setAttribute('privilege', 'unset')
-                            document.getElementById(e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')).classList.remove('green')
-                            document.getElementById(e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')).classList.remove('check')
-                            document.getElementById(e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')).classList.add('red')
-                            document.getElementById(e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')).classList.add('minus')
+                            document.getElementById(id).classList.remove('green')
+                            document.getElementById(id).classList.remove('check')
+                            document.getElementById(id).classList.add('red')
+                            document.getElementById(id).classList.add('minus')
                         }else{
                             e.target.setAttribute('privilege', 'set')
-                            document.getElementById(e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')).classList.remove('red')
-                            document.getElementById(e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')).classList.remove('minus')
-                            document.getElementById(e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')).classList.add('green')
-                            document.getElementById(e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')).classList.add('check')
+                            document.getElementById(id).classList.remove('red')
+                            document.getElementById(id).classList.remove('minus')
+                            document.getElementById(id).classList.add('green')
+                            document.getElementById(id).classList.add('check')
                         }
                     },
                     error: error => {
@@ -98,7 +111,7 @@
                     }
                 })
             },
-            user_delete: (e) => {
+            user_delete: (event) => {
                 this.username = e.target.getAttribute('username')
                 swal({
                     title: 'Eliminarás al usuario ' + this.username,
@@ -116,10 +129,10 @@
                             url: '/user/delete/', 
                             type: 'POST',
                             data: {
-                                'id': e.target.getAttribute('user_id'),
+                                'id': event.target.getAttribute('user_id'),
                             },
                             success: (result) => {
-                                document.getElementById('row-' + e.target.getAttribute('user_id')).style.display = 'none'
+                                document.getElementById('row-' + event.target.getAttribute('user_id')).style.display = 'none'
                                 swal({
                                     title: 'Se eliminó',
                                     text: 'EL usuario ya no existe.',
@@ -136,6 +149,25 @@
                         });
                     }
                 })
+            },
+            set_role: event => {
+                $.post({
+                    url: '/role/change/', 
+                    type: 'POST',
+                    data: {
+                        'id_user': event.target.getAttribute('user_id'),
+                        'id_role': event.target.getAttribute('role_id')
+                    },
+                    success: (result) => {
+                    },
+                    error: (error) => {
+                        swal({
+                            title: 'Algo salió mal',
+                            text: 'Error: '+jQuery.parseJSON(error.responseText).message,
+                            type: 'error'
+                        })
+                    }
+                });
             },
             loading: () => {
                 swal({

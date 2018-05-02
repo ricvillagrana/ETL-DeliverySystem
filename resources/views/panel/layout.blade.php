@@ -16,11 +16,14 @@ Dashboard
                 <div class="header">General</div>
                 <a href="/user/{{ session('user')->username }}" class="item"><i class="fa fa-user"></i> Perfil</a>
                 @if(\App\Privilege::checkName(session('user')->id, 'Administrar usuarios'))
-                <a href="/users" class="item"><i class="fa fa-users"></i> Administrar usuarios</a>
+                <div class="divider"></div>
+                <div class="header">Administrar</div>
+                <a href="/users" class="item"><i class="fa fa-users"></i> Usuarios</a>
+                <a href="/roles" class="item"><i class="fa fa-paste"></i> Roles</a>
                 <div class="divider"></div>
                 <div class="header">Opciones de ETL</div>
                 <div onclick="etl_reset();" class="item"><i class="fa fa-refresh"></i> Restaurar</div>
-                <a class="item" target="_blank" href="/generateXLS"><i class="fa fa-download"></i> Descargar XLS</a>
+                <a class="item text-success" target="_blank" href="/generateXLS"><i class="fa fa-download"></i> Descargar XLS</a>
                 @endif
                 <div class="divider"></div>
                 <a href="/logout" class="item"><i class="fa fa-sign-out"></i> Cerrar sesión</a>
