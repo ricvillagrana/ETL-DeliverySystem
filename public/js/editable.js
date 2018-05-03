@@ -122,7 +122,7 @@ let app = new Vue({
             this.field = this.current_field.getAttribute('field')
             this.comment = this.current_field.getAttribute('comment')
             this.row_id = this.current_field.getAttribute('row_id')
-            if(this.field.includes('fecha') || this.field.includes('creado')){
+            if(this.field.includes('fecha') || this.field.includes('creado') || this.field.includes('created_at')){
                 this.input_type = 'date'
             }else if(this.field.includes('hora')){
                 this.input_type = 'time'

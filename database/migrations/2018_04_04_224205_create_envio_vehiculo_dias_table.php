@@ -19,6 +19,7 @@ class CreateEnvioVehiculoDiasTable extends Migration
             $table->integer('id_vehiculo_dia');
             $table->timestamps();
             $table->integer('etl');
+            $table->boolean('deleted')->default(false);
         });
     }
 

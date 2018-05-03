@@ -75,6 +75,7 @@ Login
             <p class="alert alert-danger">{{ session('error') }} </p>
         @endif
         <input name="name" type="text" id="inputName" class="form-control" placeholder="Nombre" required="" autofocus="" autofocus>
+        <input name="username" type="text" id="inputUsername" class="form-control" placeholder="Usuario" required="">
         <input name="email" type="email" id="inputEmail" class="form-control" placeholder="Correo Electrónico" required="">
         <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Contraseña" required="">
         <input name="password_confirm" type="password" id="inputPasswordConfirm" class="form-control" placeholder="Repite Contraseña" required="">

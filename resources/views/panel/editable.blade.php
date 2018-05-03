@@ -44,13 +44,18 @@
             <h4 class="my-0 font-weight-normal">Proceso Finalizado</h4>
         </div>
         <div class="card-body">
-            <div class="my-2">Felicitaciones, terminaste el proceso ETL, ahora puedes ir al Dashboard.</div>
-            <a href="/"><button class="btn btn-success w-100 py-2"><h5>Dashboard</h5></button></a>
+            <div class="my-2">Felicitaciones, terminaste el proceso ETL, ahora puedes ir al {{ !\App\Privilege::checkName(session('user')->id, 'Administrar usuarios') ? 'Inicio' : 'Dashboard' }}.</div>
+            @if(!\App\Privilege::checkName(session('user')->id, 'Administrar usuarios'))
+            <a href="/etl"><button class="btn btn-success w-100 py-2"><h5>Inicio</h5></button></a>
+            @else
+            <a href="/dashboard"><button class="btn btn-success w-100 py-2"><h5>Dashboard</h5></button></a>
+            @endif
         </div>
     </div>
     @else
     <h3> Lista de correcciones </h3>
-    <div class="alert alert-info" role="alert">
+    <p>Correcciones restantes: {{ \App\Error::where('solved', '0')->get()->count() }}</p>
+    {{-- <div class="alert alert-info" role="alert">
         <h4>Atención</h4>
         <ul>
             <li>Los campos con fondo distinto son los que puedes modificar.</li>
@@ -71,16 +76,7 @@
                 <li>Puedes retirarte y cerrar sesión cuando quieras, el ETL seguirá en el punto que lo hayas dejado, no necesitas hacer click en ningún botón, siempre te llevamos el paso.</li>
             </ul>
         </ul>
-    </div>
-    <div class="card mb-4 box-shadow mx-auto w-50">
-        <div class="card-header">
-            <h4 class="my-0 font-weight-normal">Guarda los cambios.</h4>
-        </div>
-        <div class="card-body">
-            <div class="my-2">Cuando termines pasarás a la última fase, la corrección de errores que un algoritmo no puede calcular o "adivinar", es decir, datos externos al sistema propio.</div>
-            <button @click="finish" class="btn btn-success w-100 py-4"><h5><i class="fa fa-database"></i> Enviar cambios al DataWareHouse</h5></button>
-        </div>
-    </div>
+    </div> --}}
     <div>
         @foreach ($tables as $key => $table)
         @if($table['data'] != null)
@@ -114,58 +110,79 @@
                     class="bg-info cursor-pointer {{ ($row['auto_fix'][array_search($row['field'], array_keys($row['auto_fix']))] == "" && in_array($index, $row['field'])) ? 'bg-warning' : '' }}"
                     class="{{ $row['solved'] ? 'bg-warning cursor-pointer' : '' }}"
                     @endif
-                    > {{ $row[$index] }} </td>
+                    > {{ (strpos($index, 'fecha') !== false || strpos($index, 'created') !== false) ? \App\Misc::fancy_date($row[$index]) : $row[$index] }} </td>
                     @endforeach
-                    <td width="10px">
-                        <button @click="send_dwh" able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" id="{{ 'btn-'.$key.'-'.$id }}" row="{{ $key.'-'.$id }}" class="btn btn-success px-4"><i row="{{ $key.'-'.$id }}" id="{{ 'icon-'.$key.'-'.$id }}" able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" class="fa fa-download"></i></button>
-                        <button @click="delete_dwh" row="{{ $key.'-'.$id }}" class="btn btn-danger px-4"><i row="{{ $key.'-'.$id }}" class="fa fa-times"></i></button>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-        @endif
-        @endforeach
-        <div id="fg-wall" class="text-center"></div>
-        <div id="card-changes">
-            <div class="row">
-                <div class="card text-center mx-auto mt-5 col-md-6 col-sm-5" style="opacity: 1;">
-                    <div class="card-body">
-                        <h2 class="card-title">Cambiar valor</h2>
-                        <p class="card-text text-custom"> 
-                            Valor que contenía: @{{ original }} <br />
-                            Valor sugerido: @{{ suggest }} <br />
-                            Comentario: @{{ comment }} <br />
-                            Valor actual: <input id="new_value" class="form-control w-50 mx-auto" :type="input_type" v-model:value="current"><br />
-                        </p>
-                        <button id="close-etl-btn" @click="close_card()" class="mt-3 btn btn-outline-danger"><i class="fa fa-times"></i> Cancelar</button>
-                        <button id="close-etl-btn" @click="save()" class="mt-3 btn btn-outline-primary"><i class="fa fa-save"></i> Guardar</button>
-                    </div>
-                </div>
-            </div>
+                    <td width="auto">
+                        <button @click="send_dwh" 
+                        able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" 
+                        id="{{ 'btn-'.$key.'-'.$id }}" 
+                        row="{{ $key.'-'.$id }}" class="btn btn-success px-4">
+                            <i 
+                            row="{{ $key.'-'.$id }}" 
+                            id="{{ 'icon-'.$key.'-'.$id }}" 
+                            able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" 
+                            class="fa fa-check"></i>
+                    </button>
+                    <button @click="delete_dwh" row="{{ $key.'-'.$id }}" class="btn btn-danger px-4"><i row="{{ $key.'-'.$id }}" class="fa fa-times"></i></button>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
+    @endforeach
+    <div class="card mb-4 box-shadow mx-auto w-50">
+        <div class="card-header">
+            <h4 class="my-0 font-weight-normal">Guarda los cambios.</h4>
         </div>
-        <div id="card-general">
-            <div class="row">
-                <div class="card text-center mx-auto mt-5 col-md-6 col-sm-5" style="opacity: 1;">
-                    <div class="card-body">
-                        <h2 class="card-title">Cambiar valor</h2>
-                        <p class="card-text text-custom">
-                            Nuevo valor: <input id="general_new_value" class="form-control w-50 mx-auto" :type="general_input_type" v-model:value="general_current"><br />
-                        </p>
-                        <button id="close-etl-btn" @click="close_card()" class="mt-3 btn btn-outline-danger"><i class="fa fa-times"></i> Cancelar</button>
-                        <button id="close-etl-btn" @click="save_all()" class="mt-3 btn btn-outline-primary"><i class="fa fa-save"></i> Guardar</button>
-                    </div>
+        <div class="card-body">
+            <div class="my-2">Cuando termines pasarás a la última fase, la corrección de errores que un algoritmo no puede calcular o "adivinar", es decir, datos externos al sistema propio.</div>
+            <button @click="finish" class="btn btn-success w-100 py-4"><h5><i class="fa fa-database"></i> Enviar cambios al DataWareHouse</h5></button>
+        </div>
+    </div>
+    <div id="fg-wall" class="text-center"></div>
+    <div id="card-changes">
+        <div class="row">
+            <div class="card text-center mx-auto mt-5 col-md-6 col-sm-5" style="opacity: 1;">
+                <div class="card-body">
+                    <h2 class="card-title">Cambiar valor</h2>
+                    <p class="card-text text-custom"> 
+                        {{-- Valor que contenía: @{{ original }} <br />
+                        Valor sugerido: @{{ suggest }} <br /> --}}
+                        @{{ comment }} <br />
+                        Valor actual: <input id="new_value" class="form-control w-50 mx-auto" min="1" :type="input_type" v-model:value="current"><br />
+                    </p>
+                    <button id="close-etl-btn" @click="close_card()" class="mt-3 btn btn-outline-danger"><i class="fa fa-times"></i> Cancelar</button>
+                    <button v-if="current >= 1" id="close-etl-btn" @click="save()" class="mt-3 btn btn-outline-primary"><i class="fa fa-save"></i> Guardar</button>
                 </div>
             </div>
         </div>
     </div>
-    @endif
+    <div id="card-general">
+        <div class="row">
+            <div class="card text-center mx-auto mt-5 col-md-6 col-sm-5" style="opacity: 1;">
+                <div class="card-body">
+                    <h2 class="card-title">Cambiar valor</h2>
+                    <p class="card-text text-custom">
+                        Nuevo valor: <input id="general_new_value" class="form-control w-50 mx-auto" min="1" :type="general_input_type" v-model:value="general_current"><br />
+                    </p>
+                    <button id="close-etl-btn" @click="close_card()" class="mt-3 btn btn-outline-danger"><i class="fa fa-times"></i> Cancelar</button>
+                    <button v-if="general_current >= 1" id="close-etl-btn" @click="save_all()" class="mt-3 btn btn-outline-primary"><i class="fa fa-save"></i> Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 </div>
 @endsection
 @section('additional-js')
+<script src="{{ URL::asset('js/editable.js') }}"></script>
 <script>
     @foreach($tables as $key => $table)
-    $("#freeze-{{ $key }}").freezeHeader({offset : '40px'});
+    $("#freeze-{{ $key }}").freezeHeader({
+        offset : '30px',
+    });
     @endforeach
 </script>
 @endsection

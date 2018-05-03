@@ -8,10 +8,17 @@
 <div id="errors">
     <div class="card mb-4 box-shadow mx-auto w-50">
         <div class="card-header">
-            <h4 class="my-0 font-weight-normal"> {{ $error_quantity }}/{{ $error_quantity_total }} errores </h4>
+            <h4 class="my-0 font-weight-normal"> Errores </h4>
         </div>
-        <div class="card-body">
-            Haz click para ir a la corrección.
+        <div class="card-body mx-auto">
+            <div class="ui statistic">
+                <div class="value">
+                    {{ $error_quantity }}/{{ $error_quantity_total }} 
+                </div>
+                <div class="label">
+                    Errores restantes
+                </div>
+            </div><br />
             @if($error_quantity == $error_quantity_total)
             <button @click="{{ $auto_fix ? 'auto_correct()' : 'correct()' }}" id="corrections-btn" type="button" class="mt-2 btn btn-lg btn-block btn-outline-success" {{ $error_quantity == 0 ? 'disabled="disabled"' : '' }}>Comenzar el proceso de corrección</button>
             @else
@@ -58,7 +65,7 @@
         methods: {
             switch_errors: () => {
                 console.log('switched to: ' + !errors.errors_visible)
-                errors.errors_visible = errors.errors_visible ? false : true
+                errors.errors_visible = !errors.errors_visible 
                 errors.btn_hide_text = errors.errors_visible ? 'Esconder errores' : 'Mostrar errores'
             },
             correct: function(){
@@ -80,7 +87,7 @@
                     }
                 });
                 swal({
-                    title: 'Hay errores que se corrigieron de manera automática.',
+                    title: 'Hay {{ \App\Error::where("auto_fix", "<>", "")->get()->count() }} errores que se corrigieron de manera automática.',
                     text: "¿Deseas enviarlos al DataWareHouse ahora?",
                     type: 'warning',
                     showCancelButton: true,

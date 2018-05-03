@@ -13,9 +13,10 @@ let mix = require('laravel-mix');
 
 mix.js([
     'resources/assets/js/app.js',
-    'resources/assets/js/editable.js',
     'node_modules/chart.js/src/chart.js',
     'node_modules/jquery/src/jquery.js',
+    'node_modules/semantic-ui/dist/semantic.min.js',
+    'node_modules/semantic-ui/dist/components/dropdown.min.js',
     'node_modules/sweetalert2/dist/sweetalert2.all.min.js',
     'node_modules/popper.js/dist/popper.js',
     'node_modules/bootstrap/dist/js/bootstrap.js',

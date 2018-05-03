@@ -26,13 +26,21 @@ class User extends Authenticatable
      * @return boolean
      */
     public static function auth(User $user){
-        if($userLogged = User::where('email', $user->email)->where('password', $user->password)->first())
+        if($userLogged = \DB::select('SELECT * FROM users WHERE (email = "'.$user->email.'" OR username = "'.$user->email.'") AND password = "'.$user->password.'"'))
         {
-            session(['user' => $userLogged]);
+            session(['user' => (Object)$userLogged[0]]);
             return true;
         }
         return false;
     }
+
+    public static function getRole ($id) {
+        $name = \DB::select('SELECT r.name FROM roles r join users u on u.id_role = r.id WHERE u.id = '.$id);
+        if($name != null)
+            return ($name[0])->name;
+        return "Selecciona un rol";
+    }
+
     /**
      * The attributes that should be hidden for arrays.
      *

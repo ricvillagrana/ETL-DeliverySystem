@@ -14,6 +14,7 @@ class CargaGas extends Model
         SELECT * FROM carga_gas cg join errors er
         ON cg.id = er.id_error
         WHERE er.table = 'carga_gas'
+        AND er.deleted = false
         ");
     }
     public static function solvedClean ($solved = true) 

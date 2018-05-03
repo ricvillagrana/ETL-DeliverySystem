@@ -13,6 +13,7 @@ class Empleado extends Model
         ON cg.id = er.id_error
         WHERE er.table = 'empleados'
         AND er.solved = $solved
+        AND er.deleted = false
         ");
     }
     public static function solvedClean ($solved = true) 

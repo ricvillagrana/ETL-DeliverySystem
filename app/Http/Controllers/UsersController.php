@@ -32,7 +32,7 @@ class UsersController extends Controller
     */
     public function login () { 
         if(session('user') != null)
-        return redirect('/dashboard');
+        return redirect('/etl');
         return view('login');
     }
     /**
@@ -47,11 +47,27 @@ class UsersController extends Controller
         $user->password = sha1(md5($request->input('password')));
         if(User::auth($user))
         {
-            return redirect('/dashboard');
+            return redirect('/etl');
         }
         else
         return redirect('/')->with('error', 'No se pudo iniciar sesión.');
     }
+
+    /**
+     * Manage
+     * 
+     * return User::all();
+     * 
+     */
+    public function manage () 
+    {
+        if(session('user') === null)
+        return redirect('/')->with('error', 'Debes iniciar sesión.');
+        if(!\App\Privilege::checkName(session('user')->id, 'Administrar usuarios')) return redirect('/');
+        $data['users'] = User::all();
+        return view('panel.manage_users', $data);
+    }
+
     /**
     * LogOut
     * 
@@ -72,6 +88,7 @@ class UsersController extends Controller
     {
         if(session('user') === null)
         return redirect('/')->with('error', 'Debes iniciar sesión.');
+        if(!\App\Privilege::checkName(session('user')->id, 'Dashboard')) return redirect('/');
         $data['user'] = session('user');
         $data['sources']                                = SourcesLocal::orderBy('database', 'ASC')->get();
         $data['count']['envios']                        = Sqlsrv\Envio::all()->count();
@@ -81,13 +98,13 @@ class UsersController extends Controller
         $data['count']['ordenes']                       = Sqlsrv\Ordenes::all()->count();
         $data['count']['devoluciones']                  = Sqlsrv\Devoluciones::all()->count();
         $data['count']['conductores']                   = Sqlsrv\Empleado::all()->count();
-        $data['count']['error_envios']                  = Envio::all()->count();
-        $data['count']['error_vehiculo_dia']            = VehiculoDia::all()->count();
-        $data['count']['error_envio_vehiculo_dia']      = EnvioVehiculoDia::all()->count();
-        $data['count']['error_carga_gas']               = CargaGas::all()->count();
-        $data['count']['error_ordenes']                 = Ordenes::all()->count();
-        $data['count']['error_devoluciones']            = Devoluciones::all()->count();
-        $data['count']['error_conductores']             = Empleado::all()->count();
+        $data['count']['error_envios']                  = Envio::where('deleted', false)->get()->count();
+        $data['count']['error_vehiculo_dia']            = VehiculoDia::where('deleted', false)->get()->count();
+        $data['count']['error_envio_vehiculo_dia']      = EnvioVehiculoDia::where('deleted', false)->get()->count();
+        $data['count']['error_carga_gas']               = CargaGas::where('deleted', false)->get()->count();
+        $data['count']['error_ordenes']                 = Ordenes::where('deleted', false)->get()->count();
+        $data['count']['error_devoluciones']            = Devoluciones::where('deleted', false)->get()->count();
+        $data['count']['error_conductores']             = Empleado::where('deleted', false)->get()->count();
         return view('panel.dashboard', $data);
     }
     
@@ -328,6 +345,7 @@ class UsersController extends Controller
         return redirect('/register');
         $user = new User;
         $user->name     = $request->input('name');
+        $user->username     = $request->input('username');
         $user->email    = $request->input('email');
         $user->password = sha1(md5($request->input('password')));
         if($user->save()){
@@ -355,9 +373,10 @@ class UsersController extends Controller
     * @param  int  $id
     * @return \Illuminate\Http\Response
     */
-    public function show($id)
+    public function show($username)
     {
-        //
+        $data['user'] = User::where('username', $username)->first();
+        return view('panel.user', $data);
     }
     
     /**
@@ -391,6 +410,6 @@ class UsersController extends Controller
     */
     public function destroy($id)
     {
-        //
+        return User::destroy($id);
     }
 }

@@ -42,28 +42,27 @@
 @endsection
 @section('dashboard-content')
 <div id="app-etl">
-    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    {{-- <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
         <h1 class="display-4">ETL</h1>
         <p class="lead">El significado de ETL es <em>Extraction</em>, <em>Transform</em> and <em>Load</em>, 
             que traducido es Extracción, Transformación y Carga. <br>
             A continuación harás el proceso de ETL.
         </p>
-    </div>
-    <div class="offset-md-3 col-md-6 offset-sm-2 col-sm-8 col-12">
-        <div class="card mb-4 box-shadow">
+    </div> --}}
+    <div class="offset-md-3 col-md-6 offset-sm-2 col-sm-8 col-12 mt-5">
+        <div class="card box-shadow m-5">
             <div class="card-header">
                 <h4 class="my-0 font-weight-normal">Comenzar ETL</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <ul>
                     <li>Importará todas las tablas al <b>DataWareHouse</b>.</li>
                     <li>Los campos o registros erroneos serán mostrados para su modificación.</li>
-                    <li>El proceso quedará registrado a nombre de <b>{{ $user->name }}</b>.</li>
+                    <li>El proceso quedará registrado a nombre de <b>{{ (session('user'))->name }}</b>.</li>
                 </ul>
                 <button @click="etl_begin()" id="etl-begin" type="button" class="btn btn-lg btn-block btn-outline-primary">Comenzar el proceso</button>
             </div>
         </div>
-        <button @click="etl_reset()" class="btn btn-outline-danger">Reiniciar ETL</button>
     </div>
     <div id="fg-wall" class="text-center"></div>
     <div id="content-etl-process">
@@ -92,41 +91,15 @@
 @endsection
 @section('additional-js')
 <script>
-
+    
     let etl = new Vue({
         el: '#app-etl',
-        
         data: {
             message: 'Comenzando el proceso...',
             percentage: '0%',
         },
         
         methods: {
-            etl_reset: function(){
-                this.loading()
-                // Enable etl-begin button
-                $("#etl-begin").prop('disabled', false) ;
-                // show buttons
-                $('#next-etl-btn').css({display: "none"});
-                $('#close-etl-btn').css({display: "none"});
-                // Show done image
-                $('#progress-wheel').css({display: "block"});
-                $('#progress-done').css({display: "none"});
-                // Set progressbar to 0%
-                etl.percentage = '0%'
-                $('#etl-progress-bar').css('width', etl.percentage)
-                // Set progressbar primary
-                $('#etl-progress-bar').removeClass('bg-success')
-                // Cleaning tables
-                $.ajaxSetup({async: true});
-                $.ajax({url: '{{ URL::to('/etl/clean') }}', success: function(result){
-                    swal(
-                    'ETL reiniciado',
-                    'Todos tus movimientos que no estaban fríamente calculados fueron deshechos',
-                    'success'
-                    )
-                }});
-            },
             etl_begin: function(){
                 $('#fg-wall').css('top', '0');
                 $('#content-etl-process').css('top', '0');
