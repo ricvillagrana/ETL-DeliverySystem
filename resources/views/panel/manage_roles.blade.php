@@ -5,8 +5,8 @@
 </style>
 @endsection
 @section('dashboard-content')
-<h3>Administración de usuarios</h3>
-<p>Aquí puedes modificar los permisos e incuso eliminar usuarios.</p>
+<h3>Administración de roles</h3>
+<p>Aquí puedes modificar los permisos oeliminar roles.</p>
 <div id="manage_roles">
     <div class="row mb-3">
         <div class="w-50 mx-auto">

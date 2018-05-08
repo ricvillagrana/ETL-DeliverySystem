@@ -2,12 +2,10 @@
 
 
 Route::get('/debug', function(){
-    foreach(Error::where('solved', '=', '1')->get() as $error){
-        echo $error->id_error;
-    }
+    \App\User::hasSection(session('user')->id, 'Carga gas');
 });
 
-Route::get('/generateXLS', 'UsersController@generateXLS');
+Route::get('/generateXLS/{file_name}', 'UsersController@generateXLS');
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -41,6 +39,9 @@ Route::get('/dashboard', 'UsersController@dashboard');
 Route::get('/users', 'UsersController@manage');
 Route::get('/user/{username}', 'UsersController@show');
 Route::get('/register', 'UsersController@new');
+Route::post('/auth', 'UsersController@auth');
+Route::post('/create', 'UsersController@create');
+Route::get('/logout', 'UsersController@logout');
 Route::post('/user/delete/', function (Request $request){
     return \App\User::destroy($request->input('id'));
 });
@@ -146,37 +147,37 @@ Route::post('/etl/check/send', function(Request $request){
     if($table == 'carga_gas'){
         $row = CargaGas::find($id)->toArray();
         Sqlsrv\CargaGas::create($row);
-        CargaGas::where('id', $row->id)->update(['deleted' => true]);
+        CargaGas::where('id', $row['id'])->update(['deleted' => true]);
     }
     if($table == 'vehiculo_dias'){
         $row = VehiculoDia::find($id)->toArray();
         Sqlsrv\VehiculoDia::create($row);
-        VehiculoDia::where('id', $row->id)->update(['deleted' => true]);
+        VehiculoDia::where('id', $row['id'])->update(['deleted' => true]);
     }
     if($table == 'envio_vehiculo_dias'){
         $row = EnvioVehiculoDia::find($id)->toArray();
         Sqlsrv\EnvioVehiculoDia::create($row);
-        EnvioVehiculoDia::where('id', $row->id)->update(['deleted' => true]);
+        EnvioVehiculoDia::where('id', $row['id'])->update(['deleted' => true]);
     }
     if($table == 'envios'){
         $row = Envio::find($id)->toArray();
         Sqlsrv\Envio::create($row);
-        Envio::where('id', $row->id)->update(['deleted' => true]);
+        Envio::where('id', $row['id'])->update(['deleted' => true]);
     }
     if($table == 'devoluciones'){
         $row = Devoluciones::find($id)->toArray();
         Sqlsrv\Devoluciones::create($row);
-        Devoluciones::where('id', $row->id)->update(['deleted' => true]);
+        Devoluciones::where('id', $row['id'])->update(['deleted' => true]);
     }
     if($table == 'ordenes'){
         $row = Ordenes::find($id)->toArray();
         Sqlsrv\Ordenes::create($row);
-        Ordenes::where('id', $row->id)->update(['deleted' => true]);
+        Ordenes::where('id', $row['id'])->update(['deleted' => true]);
     }
     if($table == 'empleados'){
         $row = Empleado::find($id)->toArray();
         Sqlsrv\Empleado::create($row);
-        Empleado::where('id', $row->id)->update(['deleted' => true]);
+        Empleado::where('id', $row['id'])->update(['deleted' => true]);
     }
 
     DB::select("UPDATE errors SET deleted = true WHERE id_error = $id AND `table` = '$table'");
@@ -229,10 +230,6 @@ Route::get('/etl/check/send-all', function(){
     Error::where('solved', true)->update(['deleted' => true]);
     
 });
-// User
-Route::post('/auth', 'UsersController@auth');
-Route::post('/create', 'UsersController@create');
-Route::get('/logout', 'UsersController@logout');
 // APIs
 Route::get('/dwh/envios', 'EnviosController@index');
 Route::get('/dwh/vehiculo-dia', 'VehiculoDiaController@index');
@@ -277,6 +274,8 @@ Route::get('/etl/clean', function () {
 
 Route::get('/etl/do/carga_gas', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
+    if(!\App\User::hasSection(session('user')->id, 'Carga gas')) return "Access denied";
+
     $error = false;
     $carga_gas = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'cargagas')->first()->url));
     foreach($carga_gas as $carga):
@@ -305,14 +304,14 @@ Route::get('/etl/do/carga_gas', function(){
                 'auto_fix'  => ''
             ]);
         endif;
-        if((float)preg_replace('/[^A-Za-z0-9\.]/', '', $carga->precio_litro) < 0):
+        if(Misc::cast_float($carga->precio_litro) < 0):
             $error = true;
             Error::create([
                 'table'     => 'carga_gas',
                 'id_error'  => $carga->id_carga,
                 'field'     => 'precio_litro',
                 'comment'   => 'El precio no puede ser menor a 0.',
-                'original'  => $carga->precio_litro,
+                'original'  => Misc::cast_float($carga->precio_litro),
                 'etl'       => session('id_etl'),
                 'auto_fix'  => ''
             ]);
@@ -324,7 +323,7 @@ Route::get('/etl/do/carga_gas', function(){
                 'id_error'  => $carga->id_carga,
                 'field'     => 'total',
                 'comment'   => 'El total debe ser (Precio_litro * cantidad), se sugiere que sea '.Misc::cast_float(Misc::cast_float($carga->precio_litro) * Misc::cast_float($carga->cantidad)),
-                'original'  => $carga->total,
+                'original'  => Misc::cast_float($carga->total),
                 'etl'       => session('id_etl'),
                 'auto_fix'  => Misc::cast_float(Misc::cast_float($carga->precio_litro) * Misc::cast_float($carga->cantidad))
             ]);
@@ -372,6 +371,8 @@ Route::get('/etl/do/carga_gas', function(){
 });
 Route::get('/etl/do/envios', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
+    if(!\App\User::hasSection(session('user')->id, 'Envíos')) return "Access denied";
+
     $error = false;
     $envios = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'envios')->first()->url));
     foreach($envios as $envio):
@@ -442,6 +443,8 @@ Route::get('/etl/do/envios', function(){
 });
 Route::get('/etl/do/vehiculo_dias', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
+    if(!\App\User::hasSection(session('user')->id, 'Vehículo Día')) return "Access denied";
+
     $error;
     $vehiculoDias = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'vehiculodia')->first()->url));
     foreach($vehiculoDias as $vehiculoDia):
@@ -588,6 +591,8 @@ Route::get('/etl/do/vehiculo_dias', function(){
 });
 Route::get('/etl/do/envio_vehiculo_dias', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
+    if(!\App\User::hasSection(session('user')->id, 'Vehículo Día')) return "Access denied";
+
     $envioVehiculoDias  = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'enviovehiculodia'  )->first()->url));
     if(sizeof($envioVehiculoDias) == (Envio::all()->count() + Sqlsrv\Envio::all()->count())){return "update_failed";}
     foreach($envioVehiculoDias as $envioVehiculoDia):
@@ -600,6 +605,8 @@ Route::get('/etl/do/envio_vehiculo_dias', function(){
 });
 Route::get('/etl/do/devoluciones', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
+    if(!\App\User::hasSection(session('user')->id, 'Devoluciones')) return "Access denied";
+
     $error;
     $devoluciones = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'devoluciones'      )->first()->url));
     foreach($devoluciones as $devolucion):
@@ -645,6 +652,8 @@ Route::get('/etl/do/devoluciones', function(){
 });
 Route::get('/etl/do/ordenes', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
+    if(!\App\User::hasSection(session('user')->id, 'Órdenes')) return "Access denied";
+
     $error;
     $ordenes = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'ordenes')->first()->url));
     foreach($ordenes as $orden):
@@ -685,7 +694,7 @@ Route::get('/etl/do/ordenes', function(){
                 'auto_fix'  => Misc::cast_float(Misc::cast_float($orden->subtotal) * 0.16)
             ]);
         endif;
-        if(Misc::cast_float($orden->total) != Misc::cast_float(Misc::cast_float($orden->subtotal) + Misc::cast_float($orden->iva))):
+        if(Misc::cast_float($orden->total) != Misc::cast_float((Misc::cast_float(Misc::cast_float($orden->subtotal) + Misc::cast_float($orden->iva))))):
             $error = true;
             Error::create([
                 'table'     => 'ordenes',
@@ -696,6 +705,42 @@ Route::get('/etl/do/ordenes', function(){
                 'etl'       => session('id_etl'),
                 'auto_fix'  => Misc::cast_float(Misc::cast_float($orden->subtotal) + Misc::cast_float($orden->iva))
             ]);
+        endif;
+        if(Misc::cast_float($orden->subtotal) < 0):
+            $error = true;
+            Error::create([
+                'table'     => 'ordenes',
+                'id_error'  => $orden->id_orden,
+                'field'     => 'subtotal',
+                'comment'   => 'El subtotal no puede ser negativo',
+                'original'  => $orden->subtotal,
+                'etl'       => session('id_etl'),
+                'auto_fix'  => Misc::cast_float($orden->subtotal) * -1
+            ]);
+        endif;
+        if(Misc::cast_float($orden->total) < 0):
+            $error = true;
+            Error::create([
+                'table'     => 'ordenes',
+                'id_error'  => $orden->id_orden,
+                'field'     => 'total',
+                'comment'   => 'El total no puede ser negativo',
+                'original'  => $orden->total,
+                'etl'       => session('id_etl'),
+                'auto_fix'  => Misc::cast_float($orden->total) * -1
+            ]);
+        endif;
+        if(Misc::cast_float($orden->iva) < 0):
+        $error = true;
+        Error::create([
+            'table'     => 'ordenes',
+            'id_error'  => $orden->id_orden,
+            'field'     => 'iva',
+            'comment'   => 'El IVA no puede ser negativo',
+            'original'  => $orden->iva,
+            'etl'       => session('id_etl'),
+            'auto_fix'  => Misc::cast_float($orden->iva) * -1
+        ]);
         endif;
             $date = new DateTime($orden->creado_en);
             $o                  = new Ordenes;
@@ -716,6 +761,8 @@ Route::get('/etl/do/ordenes', function(){
 });
 Route::get('/etl/do/conductores', function(){
     if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
+    if(!\App\User::hasSection(session('user')->id, 'Empleados')) return "Access denied";
+
     $error;
     $conductores = json_decode(file_get_contents(SourcesLocal::where('name', 'like', 'conductores')->first()->url));
     foreach($conductores as $conductor):

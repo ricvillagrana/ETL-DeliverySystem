@@ -38,9 +38,9 @@ class EtlController extends Controller
     }
     public function errors () {
         if(session('user') === null)return redirect('/')->with('error', 'Debes iniciar sesión.');
-        $data['errors'] = Error::where('solved', '<>', '1')->get();
+        $data['errors'] = Error::where('deleted', '<>', '1')->get();
         $data['auto_fix'] = Error::where('auto_fix', '<>', '')->count() > 0 ? true : false;
-        $data['error_quantity'] = Error::where('solved', '<>', '1')->count();
+        $data['error_quantity'] = Error::where('deleted', '<>', '1')->count();
         $data['error_quantity_total'] = Error::all()->count();
         return view('panel.errors', $data);
     }
@@ -190,8 +190,8 @@ class EtlController extends Controller
 
         // Getting data from Conductores
         $empleados['table_name'] = "Empleados";
-        $empleados['headers'] = ['Nombre del cliente', 'Apellido Paterno', 'Apellido Materno', 'Teléfono', 'Correo electrónico', 'RFC', 'Domicilio', 'Municipio', 'Estado', 'Fecha de inicio', 'Fecha de Nacimiento'];
-        $empleados['indexes'] = ['nombre', 'apellido_paterno', 'apellido_materno', 'telefono', 'correo', 'rfc', 'domicilio', 'municipio', 'estado', 'fecha_inicio', 'fecha_nac'];
+        $empleados['headers'] = ['Nombre del cliente', 'Apellido', 'RFC', 'Fecha de inicio', 'Fecha de Nacimiento'];
+        $empleados['indexes'] = ['nombre', 'apellido_paterno', 'rfc', 'fecha_inicio', 'fecha_nac'];
         $rows = json_decode(json_encode(Empleado::solved($param)),true);
         $empleados['data'] = [];
         foreach($rows as $row){

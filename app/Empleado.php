@@ -12,7 +12,6 @@ class Empleado extends Model
         SELECT * FROM empleados cg join errors er
         ON cg.id = er.id_error
         WHERE er.table = 'empleados'
-        AND er.solved = $solved
         AND er.deleted = false
         ");
     }

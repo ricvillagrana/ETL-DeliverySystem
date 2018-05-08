@@ -12,7 +12,6 @@ class VehiculoDia extends Model
         SELECT * FROM vehiculo_dias cg join errors er
         ON cg.id = er.id_error
         WHERE er.table = 'vehiculo_dias'
-        AND er.solved = $solved
         AND er.deleted = false
         ");
     }

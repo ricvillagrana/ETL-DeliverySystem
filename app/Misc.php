@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Misc extends Model
 {
     public static function cast_float($number){
-        return number_format((float)preg_replace('/[^A-Za-z0-9\.]/', '', $number), 2, '.', '');
+        $new = number_format((float)preg_replace('/[^A-Za-z0-9\.]/', '', $number), 2, '.', '');
+        if($number[0] == '-')
+            $new = '-'.$new;
+        return $new;
     }
 
     public static function contains_number($str){

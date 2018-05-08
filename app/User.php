@@ -38,7 +38,16 @@ class User extends Authenticatable
         $name = \DB::select('SELECT r.name FROM roles r join users u on u.id_role = r.id WHERE u.id = '.$id);
         if($name != null)
             return ($name[0])->name;
-        return "Selecciona un rol";
+        return "Ninguno";
+    }
+
+    public static function getRoleSections ($id) {
+        $sections = \DB::select('SELECT s.name FROM roles r JOIN users u ON u.id_role = r.id JOIN role_sections rs ON rs.id_role = r.id JOIN sections s ON s.id = rs.id_section WHERE u.id = '.$id);
+        return $sections;
+    }
+    public static function hasSection ($id_user, $section_name) {
+        $sections = \DB::select('SELECT count(s.name) as num FROM roles r JOIN users u ON u.id_role = r.id JOIN role_sections rs ON rs.id_role = r.id JOIN sections s ON s.id = rs.id_section WHERE u.id = '.$id_user.' AND s.name = "'.$section_name.'"');
+        return (($sections)[0]->num >= 1);
     }
 
     /**

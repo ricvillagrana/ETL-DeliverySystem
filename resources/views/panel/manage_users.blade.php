@@ -81,25 +81,25 @@
             username: ''
         },
         methods: {
-            swap: (e) => {
-                var uri = (e.target.getAttribute('privilege') == 'unset') ? 'add' : 'remove'
+            swap: (event) => {
+                var uri = (event.target.getAttribute('privilege') == 'unset') ? 'add' : 'remove'
                 $.ajax({
                     url: '/user/privilege/' + uri,
                     type: 'POST',
                     data: {
-                        'id_user': e.target.getAttribute('id_user'),
-                        'id_privilege': e.target.getAttribute('id_privilege')
+                        'id_user': event.target.getAttribute('id_user'),
+                        'id_privilege': event.target.getAttribute('id_privilege')
                     },
                     success: result => {
-                        let id = e.target.getAttribute('id_user') + '-' + e.target.getAttribute('id_privilege')
-                        if(e.target.getAttribute('privilege') == 'set'){
-                            e.target.setAttribute('privilege', 'unset')
+                        let id = event.target.getAttribute('id_user') + '-' + event.target.getAttribute('id_privilege')
+                        if(event.target.getAttribute('privilege') == 'set'){
+                            event.target.setAttribute('privilege', 'unset')
                             document.getElementById(id).classList.remove('green')
                             document.getElementById(id).classList.remove('check')
                             document.getElementById(id).classList.add('red')
                             document.getElementById(id).classList.add('minus')
                         }else{
-                            e.target.setAttribute('privilege', 'set')
+                            event.target.setAttribute('privilege', 'set')
                             document.getElementById(id).classList.remove('red')
                             document.getElementById(id).classList.remove('minus')
                             document.getElementById(id).classList.add('green')
@@ -112,7 +112,7 @@
                 })
             },
             user_delete: (event) => {
-                this.username = e.target.getAttribute('username')
+                this.username = event.target.getAttribute('username')
                 swal({
                     title: 'Eliminarás al usuario ' + this.username,
                     text: "No podrás recuperarlo, ¿deseas continuar?",

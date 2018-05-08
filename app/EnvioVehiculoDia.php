@@ -12,7 +12,6 @@ class EnvioVehiculoDia extends Model
         SELECT * FROM envio_vehiculo_dias cg join errors er
         ON cg.id = er.id_error
         WHERE er.table = 'envio_vehiculo_dias'
-        AND er.solved = $solved
         AND er.deleted = false
         ");
     }
