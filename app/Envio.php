@@ -12,7 +12,6 @@ class Envio extends Model
         SELECT * FROM envios cg join errors er
         ON cg.id = er.id_error
         WHERE er.table = 'envios'
-        AND er.solved = $solved
         AND er.deleted = false
         ");
     }

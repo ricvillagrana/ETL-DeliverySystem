@@ -12,7 +12,6 @@ class Devoluciones extends Model
             SELECT * FROM devoluciones d join errors er
                 ON d.id = er.id_error
             WHERE er.table = 'devoluciones'
-            AND er.solved = $solved
             AND er.deleted = false
         ");
     }

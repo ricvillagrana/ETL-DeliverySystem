@@ -3,6 +3,8 @@
 Login
 @endsection
 @section('css')
+<link rel="stylesheet" href="/css/app.css">
+@yield('additional-css')
 <style>
     html,
     body {
@@ -68,21 +70,106 @@ Login
 </style>
 @endsection
 @section('content')
-<div class="text-center">
-    <form class="form-signin" method="POST" action="/create">
-        <h1 class="h3 mb-3 font-weight-normal">Registrar</h1>
-        @if(session('error'))
-            <p class="alert alert-danger">{{ session('error') }} </p>
-        @endif
-        <input name="name" type="text" id="inputName" class="form-control" placeholder="Nombre" required="" autofocus="" autofocus>
-        <input name="username" type="text" id="inputUsername" class="form-control" placeholder="Usuario" required="">
-        <input name="email" type="email" id="inputEmail" class="form-control" placeholder="Correo Electrónico" required="">
-        <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Contraseña" required="">
-        <input name="password_confirm" type="password" id="inputPasswordConfirm" class="form-control" placeholder="Repite Contraseña" required="">
+<div id="register-form" class="text-center">
+    @if(session('error'))
+    <div class="ui negative message w-50 mx-auto">
+        <i class="close icon"></i>
+        <div class="header">
+            Error
+        </div>
+        <p>{{ session('error') }}</p>
+    </div>
+    @endif
+    <form class="ui form w-50 mx-auto" method="POST" action="/create">
+        <h4 class="ui dividing header">Formulario de registro</h4>
+        <div class="field">
+            <label>Nombre</label>
+            <div class="one field">
+                <div class="field">
+                    <input type="text" name="name" placeholder="Nombre completo" required="required">
+                </div>
+            </div>
+            <label>Usuario</label>
+            <div class="field">
+                <div class="field">
+                    <input type="text" name="username" placeholder="Nombre de usuario" required="required">
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <div class="fields">
+                <div class="ten wide field">
+                    <label>Correo electrónico</label>
+                </div>
+                <div class="six wide field">
+                    <label>Rol de usuario</label>
+                </div>
+            </div>
+            <div class="fields">
+                <div class="ten wide field">
+                    <input type="email" pattern="[^@]+@[^@]+\.[a-zA-Z]{2,6}" name="email" placeholder="Correo electrónico" required="required">
+                    <input type="hidden" id="id_role" name="id_role" v-model:value="role_id">
+                </div>
+                <div class="six wide field">
+                    <div class="ui fluid selection dropdown">
+                        <div class="text">Selecciona un rol</div>
+                        <i class="dropdown icon"></i>
+                        <div class="menu">
+                            @foreach (\App\Role::all() as $role)
+                            <div @click="set_role" id="role-{{ $role->id }}" role_id="{{ $role->id }}" class="item">{{ $role->name }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="field">
+            <div class="fields">
+                <div class="eight wide field">
+                    <label>Contraseña</label>
+                </div>
+                <div class="eight wide field">
+                    <label>Repite Contraseña</label>
+                </div>
+            </div>
+            <div class="fields">
+                <div class="eight wide field">
+                    <input type="password" name="password" placeholder="Contraseña" required="required">
+                </div>
+                <div class="eight wide field">
+                    <input type="password" name="password_confirm" placeholder="Repite contraseña" required="required">
+                </div>
+            </div>
+        </div>
         {{ csrf_field() }}
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Registrar <i class="fa fa-sign-in"></i></button>
-        <p class="mt-5 mb-3 text-muted"><a href="/">Entrar</a></p>
-        <p class="mt-5 mb-3 text-muted">Sistema ETL de Costurita</p>
+        <button class="ui button" type="submit">Registrar</button>
     </form>
+    <p class="mt-5 mb-3 text-muted"><a href="/">Entrar</a></p>
+    <p class="mt-5 mb-3 text-muted">Sistema ETL de Costurita</p>
+    
 </div>
+@endsection
+@section('js')
+<script src="/js/app.js"></script>
+
+<script>
+    let register = new Vue({
+        el: '#register-form',
+        data: {
+            role_id: 0
+        },
+        methods: {
+            set_role: event => {
+                register.role_id = event.target.getAttribute('role_id')
+                document.getElementById('id_role').value = register.role_id
+            }
+        }
+    });
+</script>
+
+<script>
+    $('.popup').popup();
+    $('.ui.dropdown').dropdown();
+</script>
 @endsection

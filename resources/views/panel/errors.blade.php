@@ -75,7 +75,7 @@
                 $.ajax({
                     url: '/etl/do/auto-fix',
                     success: (result) => {
-                        console.log(resilt)
+                        console.log(result)
                     },
                     error: (error) => {
                         swal({

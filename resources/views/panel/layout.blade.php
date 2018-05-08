@@ -23,7 +23,9 @@ Dashboard
                 <div class="divider"></div>
                 <div class="header">Opciones de ETL</div>
                 <div onclick="etl_reset();" class="item"><i class="fa fa-refresh"></i> Restaurar</div>
-                <a class="item text-success" target="_blank" href="/generateXLS"><i class="fa fa-download"></i> Descargar XLS</a>
+                @if(\App\Etl::totalRowsDWH() > 0)
+                <a class="item text-success" onclick="download_xls()" ><i class="fa fa-download"></i> Descargar XLS</a>
+                @endif
                 @endif
                 <div class="divider"></div>
                 <a href="/logout" class="item"><i class="fa fa-sign-out"></i> Cerrar sesión</a>
@@ -41,12 +43,12 @@ Dashboard
             <li class="nav-item">
                 <a class="nav-link" href="/etl"><i class="fa fa-linode"></i> ETL</a>
             </li>
-            @if(\App\Error::where('solved', '!=', '1')->get()->count() != 0)
+            @if(\App\Error::where('deleted', '<>', '1')->get()->count() != 0)
             <li class="nav-item">
-                <a class="nav-link" href="/etl/errors"><i class="fa fa-exclamation-triangle"></i> Errores <div class="ui tiny label">{{ \App\Error::where('solved', '<>', '1')->get()->count() }}</div></a>
+                <a class="nav-link" href="/etl/errors"><i class="fa fa-exclamation-triangle"></i> Errores <div class="ui tiny label">{{ \App\Error::where('deleted', '<>', '1')->get()->count() }}</div></a>
             </li>
             @endif
-            @if(\App\Etl::all()->count() != 0 && \App\Error::where('solved', '=', '0')->get()->count() == 0 && \App\Privilege::checkName(session('user')->id, 'Dashboard'))
+            @if(\App\Etl::all()->count() != 0 && \App\Error::where('deleted', '=', '0')->get()->count() == 0 && \App\Privilege::checkName(session('user')->id, 'Dashboard'))
             <li class="nav-item">
                 <a class="nav-link" href="/dashboard"><i class="fa fa-home"></i> Dashboard</a>
             </li>
@@ -57,30 +59,42 @@ Dashboard
                 <span><i class="fa fa-database"></i> DataWareHouse</span>
             </h6>
             <ul class="nav flex-column">
+                @if(\App\User::hasSection(session('user')->id, 'Carga gas'))
                 <li class="nav-item">
                     <a class="nav-link" href="/dwh/carga-gas"><i class="fa fa-filter"></i> Carga gas <div class="ui tiny label">{{ \App\Sqlsrv\CargaGas::all()->count() }}</div></a>
                 </li>
+                @endif
+                @if(\App\User::hasSection(session('user')->id, 'Empleados'))
                 <li class="nav-item">
                     <a class="nav-link" href="/dwh/conductores"><i class="fa fa-users"></i> Conductores <div class="ui tiny label">{{ \App\Sqlsrv\Empleado::all()->count() }}</div></a>
                 </li>
+                @endif
+                @if(\App\User::hasSection(session('user')->id, 'Devoluciones'))
                 <li class="nav-item">
                     <a class="nav-link" href="/dwh/devoluciones"><i class="fa fa-undo"></i> Devoluciones <div class="ui tiny label">{{ \App\Sqlsrv\Devoluciones::all()->count() }}</div></a>
                 </li>
+                @endif
+                @if(\App\User::hasSection(session('user')->id, 'Envíos'))
                 <li class="nav-item">
                     <a class="nav-link" href="/dwh/envios"><i class="fa fa-truck"></i> Envíos <div class="ui tiny label">{{ \App\Sqlsrv\Envio::all()->count() }}</div></a>
                 </li>
+                @endif
+                @if(\App\User::hasSection(session('user')->id, 'Órdenes'))
                 {{-- <li class="nav-item">
                     <a class="nav-link" href="/dwh/envio-vehiculo-dia"><i class="fa fa-cubes"></i> Envíos vehiculo día <div class="ui tiny label">{{ \App\Sqlsrv\EnvioVehiculoDia::all()->count() }}</div></a>
                 </li> --}}
                 <li class="nav-item">
                     <a class="nav-link" href="/dwh/ordenes"><i class="fa fa-list-ul"></i> Órdenes <div class="ui tiny label">{{ \App\Sqlsrv\Ordenes::all()->count() }}</div></a>
                 </li>
+                @endif
+                @if(\App\User::hasSection(session('user')->id, 'Vehículo Día'))
                 <li class="nav-item">
                     <a class="nav-link" href="/dwh/vehiculo-dia"><i class="fa fa-cube"></i> Vehiculos día <div class="ui tiny label">{{ \App\Sqlsrv\VehiculoDia::all()->count() }}</div></a>
                 </li>
-                <li class="nav-item p-3">
+                @endif
+                {{--  <li class="nav-item p-3">
                     <a class="btn btn-outline-success mx-auto" target="_blank" href="/generateXLS"><i class="fa fa-download"></i> Descargar XLS</a>
-                </li>
+                </li>  --}}
             </ul>
         </h6>
     </div>
@@ -89,9 +103,35 @@ Dashboard
     <br>
     @yield('dashboard-content')
 </div>
+<iframe id="XLS" style="display:none;"></iframe>
 @endsection
 @section('js')
 <script src="/js/app.js"></script>
+<script>
+    let file;
+    let download_xls = () => {
+        swal({
+            title: 'Nombre del archivo',
+            input: 'text',
+            showCancelButton: true,
+            confirmButtonText: 'Descargar',
+            showLoaderOnConfirm: true,
+            preConfirm: file_name => {
+                file = file_name
+                window.open('\/generateXLS/' + file, '_blank')
+            },
+            allowOutsideClick: () => !swal.isLoading()
+        }).then((result) => {
+            if (result.value) {
+                swal({
+                    type: 'success',
+                    title: 'Archivo ' + file + '.xlsx descargado',
+                    showConfirmButton: true,
+                })
+            }
+        })
+    }
+</script>
 {{-- Semantic UI Loads --}}
 <script>
     $('.ui.dropdown').dropdown();

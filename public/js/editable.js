@@ -17,8 +17,33 @@ let app = new Vue({
         general_current: '',
         general_field: '',
         general_input_type: '',
+        errors: 0
     },
     methods: {
+        chars_handler: event => {
+            let input = document.getElementById('new_value')
+            let type = input.getAttribute('type')
+            if(type == 'number'){
+                input.value = input.value.replace(/\D\./g, '/^[0-9]$/')
+            }
+        },
+        auto_fix: () => {
+            $.ajax({
+                url: '/etl/do/auto-fix',
+                success: (result) => {
+                    console.log(result)
+                    document.location.reload()
+                },
+                error: (error) => {
+                    swal({
+                        type: 'error',
+                        title: 'Algo salió mal...',
+                        text: 'Hubo un error mientras se hacían las correcciones, es posible que sea un fallo con el servidor.',
+                        footer: "Inténtalo de nuevo después, repórtalo con el desarrollador si es necesario",
+                    })
+                }
+            });
+        },
         edit_all: function (event) {
             document.getElementById('general_new_value').focus()
             this.general_current = ''
@@ -184,6 +209,7 @@ let app = new Vue({
                                 $(id).addClass('hidden')
                             },800)
                             setTimeout(() => {
+                                app.errors--
                                 swal({
                                     title: 'Se eliminó',
                                     text: 'EL campo no se enviará al DataWareHouse, ni aparecerá en la lista de errores.',
@@ -246,6 +272,7 @@ let app = new Vue({
                                     $(id).addClass('hidden')
                                 },800)
                                 setTimeout(() => {
+                                    app.errors--
                                     swal({
                                         title: 'Se envió',
                                         text: 'EL campo se envió al DataWareHouse, podrás encontrarlo ahí.',
@@ -311,7 +338,7 @@ let app = new Vue({
             })
         },
         
-        // Misc methods
+        // Misc method
         show_bg: () => {
             $('#fg-wall').css('top', '0%');
         },

@@ -10,6 +10,7 @@
     <div class="content">
         <div class="header">{{ $user->name }}</div>
         <div class="meta">{{ '@'.$user->username }}</div>
+        <div>Rol: <b>{{ \App\User::getRole($user->id) }}</b></div>
         <div class="description">
             Email: {{ $user->email }} <br />
             Se unió el {{ \App\Misc::fancy_date($user->created_at) }}

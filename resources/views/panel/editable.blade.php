@@ -53,8 +53,9 @@
         </div>
     </div>
     @else
+    {{--  <button @click="auto_fix" class="ui button blue pull-right">Auto corrección</button>  --}}
     <h3> Lista de correcciones </h3>
-    <p>Correcciones restantes: {{ \App\Error::where('solved', '0')->get()->count() }}</p>
+    <p>Correcciones restantes: <b>@{{ errors }}</b></p>
     {{-- <div class="alert alert-info" role="alert">
         <h4>Atención</h4>
         <ul>
@@ -106,8 +107,11 @@
                     current="{{ $row[$index] }}" 
                     suggest="{{ $row['auto_fix'][array_search($index, $row['field'])] }}"
                     comment="{{ $row['comment'][array_search($index, $row['field'])] }}"
+                    data-title="{{ $row['comment'][array_search($index, $row['field'])] }}"
+                    data-content="Valor sugerido: {{ $row['auto_fix'][array_search($index, $row['field'])] }} (Incorrecto:{{ $row['original'][array_search($index, $row['field'])] }})"
+                    data-variation="inverted"
                     {{ in_array($index, $row['field']) ? 'general_id='.$key.'-'.$index : '' }}
-                    class="bg-info cursor-pointer {{ ($row['auto_fix'][array_search($row['field'], array_keys($row['auto_fix']))] == "" && in_array($index, $row['field'])) ? 'bg-warning' : '' }}"
+                    class="bg-info cursor-pointer popup {{ ($row['auto_fix'][array_search($row['field'], array_keys($row['auto_fix']))] == "" && in_array($index, $row['field'])) ? 'bg-warning' : '' }}"
                     class="{{ $row['solved'] ? 'bg-warning cursor-pointer' : '' }}"
                     @endif
                     > {{ (strpos($index, 'fecha') !== false || strpos($index, 'created') !== false) ? \App\Misc::fancy_date($row[$index]) : $row[$index] }} </td>
@@ -117,11 +121,11 @@
                         able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" 
                         id="{{ 'btn-'.$key.'-'.$id }}" 
                         row="{{ $key.'-'.$id }}" class="btn btn-success px-4">
-                            <i 
-                            row="{{ $key.'-'.$id }}" 
-                            id="{{ 'icon-'.$key.'-'.$id }}" 
-                            able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" 
-                            class="fa fa-check"></i>
+                        <i 
+                        row="{{ $key.'-'.$id }}" 
+                        id="{{ 'icon-'.$key.'-'.$id }}" 
+                        able-to-send="{{ $row['solved'] != 0 ? 'true' : 'false' }}" 
+                        class="fa fa-check"></i>
                     </button>
                     <button @click="delete_dwh" row="{{ $key.'-'.$id }}" class="btn btn-danger px-4"><i row="{{ $key.'-'.$id }}" class="fa fa-times"></i></button>
                 </td>
@@ -150,10 +154,13 @@
                         {{-- Valor que contenía: @{{ original }} <br />
                         Valor sugerido: @{{ suggest }} <br /> --}}
                         @{{ comment }} <br />
-                        Valor actual: <input id="new_value" class="form-control w-50 mx-auto" min="1" :type="input_type" v-model:value="current"><br />
+                        Valor actual: 
+                        <div class="ui input">
+                            <input @keyup="chars_handler" id="new_value" class="form-control w-50 mx-auto" min="1" :type="input_type" v-model:value="current"><br />
+                        </div>
                     </p>
                     <button id="close-etl-btn" @click="close_card()" class="mt-3 btn btn-outline-danger"><i class="fa fa-times"></i> Cancelar</button>
-                    <button v-if="current >= 1" id="close-etl-btn" @click="save()" class="mt-3 btn btn-outline-primary"><i class="fa fa-save"></i> Guardar</button>
+                    <button id="close-etl-btn" @click="save()" class="mt-3 btn btn-outline-primary"><i class="fa fa-save"></i> Guardar</button>
                 </div>
             </div>
         </div>
@@ -167,7 +174,7 @@
                         Nuevo valor: <input id="general_new_value" class="form-control w-50 mx-auto" min="1" :type="general_input_type" v-model:value="general_current"><br />
                     </p>
                     <button id="close-etl-btn" @click="close_card()" class="mt-3 btn btn-outline-danger"><i class="fa fa-times"></i> Cancelar</button>
-                    <button v-if="general_current >= 1" id="close-etl-btn" @click="save_all()" class="mt-3 btn btn-outline-primary"><i class="fa fa-save"></i> Guardar</button>
+                    <button id="close-etl-btn" @click="save_all()" class="mt-3 btn btn-outline-primary"><i class="fa fa-save"></i> Guardar</button>
                 </div>
             </div>
         </div>
@@ -184,5 +191,10 @@
         offset : '30px',
     });
     @endforeach
+    app.errors = {{ \App\Error::where('deleted', '0')->get()->count() }};
+</script>
+<script>
+    $('.popup').popup();
+    $('.ui.dropdown').dropdown();
 </script>
 @endsection

@@ -12,7 +12,6 @@ class Ordenes extends Model
         SELECT * FROM ordenes cg join errors er
         ON cg.id = er.id_error
         WHERE er.table = 'ordenes'
-        AND er.solved = $solved
         AND er.deleted = false
         ");
     }

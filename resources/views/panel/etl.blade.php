@@ -59,6 +59,15 @@
                     <li>Importará todas las tablas al <b>DataWareHouse</b>.</li>
                     <li>Los campos o registros erroneos serán mostrados para su modificación.</li>
                     <li>El proceso quedará registrado a nombre de <b>{{ (session('user'))->name }}</b>.</li>
+                    <li>Con un rol de <b>{{ \App\User::getRole((session('user'))->id) }}</b> podrás administrar:</li>
+                    <ul>
+                        @foreach(\App\User::getRoleSections((session('user'))->id) as $section)
+                        <li>{{ $section->name }}</li>
+                        @endforeach
+                        @if(\App\User::getRoleSections((session('user'))->id) == null)
+                        <li>Nada</li>
+                        @endif
+                    </ul>
                 </ul>
                 <button @click="etl_begin()" id="etl-begin" type="button" class="btn btn-lg btn-block btn-outline-primary">Comenzar el proceso</button>
             </div>
@@ -82,7 +91,7 @@
                         <div id="etl-progress-bar" class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
                     </div>
                     <a href="/etl/errors" id="next-etl-btn" style="display:none;" class="btn btn-success w-50 mx-auto">Ver errores</a>
-                    <button id="close-etl-btn" @click="etl_finish()" style="display:none;" class="mt-3 btn btn-outline-secondary w-25 mx-auto"> Cerrar</button>
+                    {{--  <button id="close-etl-btn" @click="etl_finish()" style="display:none;" class="mt-3 btn btn-outline-secondary w-25 mx-auto"> Cerrar</button>  --}}
                 </div>
             </div>
         </div>

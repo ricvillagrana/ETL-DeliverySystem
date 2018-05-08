@@ -109,7 +109,7 @@ class UsersController extends Controller
     }
     
     
-    public function generateXLS ()
+    public function generateXLS ($file_name)
     {     
         \PhpOffice\PhpSpreadsheet\Shared\File::setUseUploadTempDirectory(true);
         $spreadsheet = new Spreadsheet();
@@ -319,7 +319,7 @@ class UsersController extends Controller
         
         $sheet = $spreadsheet->setActiveSheetIndexByName('Datos Generales');
         $writer = new Xlsx($spreadsheet);
-        $fileName = './DataWareHouse-'.session('user')->name.'.xlsx';
+        $fileName = './'.$file_name.'.xlsx';
         $writer->save($fileName);
         return redirect($fileName);
     }
@@ -342,18 +342,19 @@ class UsersController extends Controller
     public function create(Request $request)
     {
         if($request->password != $request->password_confirm)
-        return redirect('/register');
+        return redirect('/register')->with('error', 'No se pudo crear el usuario, las contraseñas deben coincidir.');
         $user = new User;
-        $user->name     = $request->input('name');
+        $user->name         = $request->input('name');
         $user->username     = $request->input('username');
-        $user->email    = $request->input('email');
-        $user->password = sha1(md5($request->input('password')));
+        $user->email        = $request->input('email');
+        $user->id_role      = $request->input('id_role');
+        $user->password     = sha1(md5($request->input('password')));
         if($user->save()){
             User::auth($user);
             return redirect('/dashboard');
-        }else{
-            return redirect('/register')->with('error', 'No se pudo crear el usuario.');
-        }
+        }else
+            return redirect('/register')->with('error', 'Error con el servidor.');
+    
     }
     
     /**
